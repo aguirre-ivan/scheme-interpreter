@@ -675,6 +675,7 @@
 ; ""
 (defn proteger-bool-en-str [cadena]
 	"Cambia, en una cadena, #t por %t y #f por %f (y sus respectivas versiones en mayusculas), para poder aplicarle read-string."
+	(clojure.string/replace cadena #"#F" "%F")
 	(apply str (map reemplazar-numeral-porcentaje cadena))
 )
 
@@ -716,9 +717,19 @@
 ; false
 (defn igual? [valor1 valor2]
 	"Verifica la igualdad entre dos elementos al estilo de Scheme (case-insensitive)"
-	(let [v1 (.toUpperCase (str valor1)),
-		v2 (.toUpperCase (str valor2))]
-		(= v1 v2)
+	(cond
+		(or
+			(and (string? valor1) (string? valor2))
+			(and (symbol? valor1) (symbol? valor2))
+		)
+			(let [v1 (.toUpperCase (str valor1)),
+				v2 (.toUpperCase (str valor2))]
+				(= v1 v2)
+			)
+		(and (coll? valor1) (coll? valor2))
+			(and (= valor1 valor2) (= (type valor1) (type valor2)))
+	:else
+		(= valor1 valor2)
 	)
 )
 
@@ -748,8 +759,18 @@
 ; #t
 ; user=> (fnc-equal? '(1 1 2 1))
 ; #f
-(defn fnc-equal?
+(defn fnc-equal? [lista]
 	"Compara elementos. Si son iguales, devuelve #t. Si no, #f."
+	(cond
+		(empty? lista) (symbol "#t")
+		(= (count lista) 1) (symbol "#t")
+	:else
+		(cond
+			(igual? (first lista) (second lista)) (fnc-equal? (drop 1 lista))
+		:else
+			(symbol "#f")
+		)
+	)
 )
 
 ; user=> (fnc-read ())
@@ -764,6 +785,21 @@
 ; (;ERROR: Wrong number of args given #<primitive-procedure read>)
 (defn fnc-read
 	"Devuelve la lectura de un elemento de Scheme desde la terminal/consola."
+)
+
+(defn no-numero
+	"Devuelve el indice del primer symbol/coll de la lista, en caso de no haber devuelve -1"
+	([lista]
+		(no-numero lista 0)
+	)
+	([lista indice]
+		(cond
+			(empty? lista) -1
+			(or (symbol? (first lista)) (coll? (first lista))) indice
+		:else
+			(no-numero (drop 1 lista) (inc indice)) 
+		)
+	)
 )
 
 ; user=> (fnc-sumar ())
@@ -782,8 +818,16 @@
 ; (;ERROR: +: Wrong type in arg2 A)
 ; user=> (fnc-sumar '(3 4 A 6))
 ; (;ERROR: +: Wrong type in arg2 A)
-(defn fnc-sumar
+(defn fnc-sumar [lista]
 	"Suma los elementos de una lista."
+	(let [posible-wrong-arg (no-numero lista)]
+		(cond
+			(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 "+" (nth lista 0))
+			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 "+" (nth lista 1))
+		:else
+			(reduce + lista)
+		)
+	)
 )
 
 ; user=> (fnc-restar ())
@@ -802,8 +846,21 @@
 ; (;ERROR: -: Wrong type in arg2 A)
 ; user=> (fnc-restar '(3 4 A 6))
 ; (;ERROR: -: Wrong type in arg2 A)
-(defn fnc-restar
-	"Resta los elementos de un lista."
+
+(defn fnc-restar [lista]
+	"Suma los elementos de una lista."
+	(cond
+		(= (count lista) 1) (- (first lista))
+	:else
+		(let [posible-wrong-arg (no-numero lista)]
+			(cond
+				(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 "-" (nth lista 0))
+				(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 "-" (nth lista 1))
+			:else
+				(reduce - lista)
+			)
+		)
+	)
 )
 
 ; user=> (fnc-menor ())
