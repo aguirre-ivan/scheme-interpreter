@@ -1027,8 +1027,14 @@
 ; ((;ERROR: define: bad variable (define () 2)) (x 1))
 ; user=> (evaluar-define '(define 2 x) '(x 1))
 ; ((;ERROR: define: bad variable (define 2 x)) (x 1))
-(defn evaluar-define
+(defn evaluar-define [expre amb]
 	"Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
+	(cond
+		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)
+		(not (symbol? (second expre))) (list (generar-mensaje-error :bad-variable "define" expre) amb)
+	:else
+		(list (symbol "#<unspecified>") (actualizar-amb amb (second expre), valor]))
+	)
 )
 
 ; user=> (evaluar-if '(if 1 2) '(n 7))
