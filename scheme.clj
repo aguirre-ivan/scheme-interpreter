@@ -1011,6 +1011,15 @@
 	)
 )
 
+(defn crear-lambda
+	([expre]
+		(let [head (drop 1 (second expre)),
+			body (nth expre 3)]
+			((symbol lambda) head body)
+		)
+	)
+)
+
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<unspecified> (x 2))
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
@@ -1031,9 +1040,10 @@
 	"Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
 	(cond
 		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)
-		(not (symbol? (second expre))) (list (generar-mensaje-error :bad-variable "define" expre) amb)
+		(symbol? (second expre)) (list (symbol "#<unspecified>") (actualizar-amb amb (second expre) (nth expre 3)))
+		(and () (not (symbol? (second expre)))) (list (generar-mensaje-error :bad-variable "define" expre) amb)
+		(list (symbol "#<unspecified>") (actualizar-amb amb (second expre) valor]))
 	:else
-		(list (symbol "#<unspecified>") (actualizar-amb amb (second expre), valor]))
 	)
 )
 
@@ -1053,8 +1063,10 @@
 ; ((;ERROR: if: missing or extra expression (if)) (n 7))
 ; user=> (evaluar-if '(if 1) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
-(defn evaluar-if
+(defn evaluar-if [expre amb]
 	"Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
+	()
+
 )
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
@@ -1067,7 +1079,7 @@
 ; (5 (#f #f #t #t))
 ; user=> (evaluar-or (list 'or (symbol "#f")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
-(defn evaluar-or
+(defn evaluar-or [expre amb]
 	"Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
 )
 
@@ -1081,7 +1093,7 @@
 ; ((;ERROR: set!: missing or extra expression (set! x 1 2)) (x 0))
 ; user=> (evaluar-set! '(set! 1 2) '(x 0))
 ; ((;ERROR: set!: bad variable 1) (x 0))
-(defn evaluar-set!
+(defn evaluar-set! [expre amb]
 	"Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
 )
 
