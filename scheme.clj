@@ -526,6 +526,17 @@
 
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE SCHEME (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
+
+(defn cant-apariciones [cadena caracter]
+	((frequencies cadena) caracter)
+)
+
+(defn parent-balanceados [cadena]
+	(let [left_parent (cant-apariciones cadena \(), right_parent (cant-apariciones cadena \))]
+		(= right_parent left_parent)
+	)
+)
+
 ; LEER-ENTRADA:
 ; user=> (leer-entrada)
 ; (hola
@@ -535,8 +546,21 @@
 ; 123
 ; "123"
 (defn leer-entrada
-	"Lee una cadena desde la terminal/consola. Si los parentesis no estan correctamente balanceados al presionar Enter/Intro, se considera que la cadena ingresada es una subcadena y el ingreso continua. De lo contrario, se la devuelve completa."
+	"Lee una cadena desde la terminal/consola. Si contiene parentesis de menos al presionar Enter/Intro, se considera que la cadena ingresada es una subcadena y el ingreso continua. De lo contrario, se la devuelve completa (si corresponde, advirtiendo previamente que hay parentesis de mas)."
+	([]
+		(leer-entrada (read-line))
+	)
+	([entrada]
+		(cond
+			(parent-balanceados entrada) entrada
+		:else
+			(let [prox_cadena (str (read-line))]
+				(leer-entrada (str entrada prox_cadena))
+			)
+		)
+	)
 )
+
 
 ; user=> (verificar-parentesis "(hola 'mundo")
 ; 1
@@ -548,8 +572,19 @@
 ; -1
 ; user=> (verificar-parentesis "(hola '(mundo) )")
 ; 0
-(defn verificar-parentesis
+(defn verificar-parentesis [y]
 	"Cuenta los parentesis en una cadena, sumando 1 si `(`, restando 1 si `)`. Si el contador se hace negativo, para y retorna -1."
+	(let [left_parent (cant-apariciones y \(), right_parent (cant-apariciones y \))]
+		(cond
+			(neg? (- right_parent left_parent)) -1
+		:else
+			(- right_parent left_parent)
+		)
+	)
+)
+
+(defn reemplazar-valor [amb, index, nuevo-valor]
+	(concat (take (+ index 1) amb) (list nuevo-valor) (drop (+ index 2) amb))
 )
 
 ; user=> (actualizar-amb '(a 1 b 2 c 3) 'd 4)
@@ -560,17 +595,50 @@
 ; (a 1 b 2 c 3)
 ; user=> (actualizar-amb () 'b 7)
 ; (b 7)
-(defn actualizar-amb
+(defn actualizar-amb [amb, clave, valor]
 	"Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
 	Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza la nueva informacion."
+	(cond
+		(error? valor) amb
+	:else
+		(let [index (buscar clave amb)]
+			(cond
+				(error? index) (concat amb (list clave valor))
+			:else
+				(reemplazar-valor amb index valor)
+			)
+	)
+)
+
+(defn pos-pares [lista] 
+	(map second (partition 2 lista))
+)
+
+(defn pos-impares [lista]
+	(let [aux-pos-impares (map first (partition 2 lista)), len (count lista)]
+		(cond
+			(odd? len) (concat aux-pos-impares (list (last lista)))
+		:else
+			aux-pos-impares
+		)
+	)
 )
 
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
 ; 3
 ; user=> (buscar 'f '(a 1 b 2 c 3 d 4 e 5))
 ; (;ERROR: unbound variable: f)
-(defn buscar
+(defn buscar [clave amb]
 	"Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...] y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
+	(let [lista-claves (pos-impares amb),
+		lista-valores (pos-pares amb),
+		index (.indexOf lista-claves clave)]
+		(cond
+			(not= index -1) (nth lista-valores index)
+		:else
+			(generar-mensaje-error :unbound-variable clave)
+		)
+	)
 )
 
 ; user=> (error? (list (symbol ";ERROR:") 'mal 'hecho))
@@ -579,8 +647,24 @@
 ; false
 ; user=> (error? (list (symbol ";WARNING:") 'mal 'hecho))
 ; true
-(defn error?
+(defn error? [lista]
 	"Devuelve true o false, segun sea o no el arg. una lista con `;ERROR:` o `;WARNING:` como primer elemento."
+	(if (not (coll? lista))
+		false
+		(let [posible-error (first lista)]
+			(or 
+				(= posible-error (symbol ";ERROR:"))
+				(= posible-error (symbol ";WARNING:"))
+			)
+		)
+	)
+)
+
+(defn reemplazar-numeral-porcentaje [caracter]
+	(case caracter
+		\# "%"
+		caracter
+	)
 )
 
 ; user=> (proteger-bool-en-str "(or #F #f #t #T)")
@@ -589,16 +673,35 @@
 ; "(and (or %F %f %t %T) %T)"
 ; user=> (proteger-bool-en-str "")
 ; ""
-(defn proteger-bool-en-str
+(defn proteger-bool-en-str [cadena]
 	"Cambia, en una cadena, #t por %t y #f por %f (y sus respectivas versiones en mayusculas), para poder aplicarle read-string."
+	(apply str (map reemplazar-numeral-porcentaje cadena))
+)
+
+(defn aux-restaurar-bool [lista]
+	(replace '{%T (symbol "#T"),
+		%F (symbol "#F"),
+		%t (symbol "#t"),
+		%f (symbol "#f")} lista
+	)
 )
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
 ; (and (or #F #f #t #T) #T)
 ; user=> (restaurar-bool (read-string "(and (or %F %f %t %T) %T)") )
 ; (and (or #F #f #t #T) #T)
-(defn restaurar-bool
+(defn restaurar-bool [cadena]
 	"Cambia, en un codigo leido con read-string, %t por #t y %f por #f (y sus respectivas versiones en mayusculas)."
+	(cond
+		(coll? cadena)
+			(cond 
+				(not-any? coll? cadena) (aux-restaurar-bool cadena)
+			:else
+				(aux-restaurar-bool (map restaurar-bool cadena))
+			)
+	:else
+		cadena
+	)
 )
 
 ; user=> (igual? 'if 'IF)
@@ -611,8 +714,12 @@
 ; false
 ; user=> (igual? 6 "6")
 ; false
-(defn igual?
+(defn igual? [valor1 valor2]
 	"Verifica la igualdad entre dos elementos al estilo de Scheme (case-insensitive)"
+	(let [v1 (.toUpperCase (str valor1)),
+		v2 (.toUpperCase (str valor2))]
+		(= v1 v2)
+	)
 )
 
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
