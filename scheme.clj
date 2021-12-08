@@ -585,8 +585,8 @@
 	)
 )
 
-(defn reemplazar-valor [amb, index, nuevo-valor]
-	(concat (take (+ index 1) amb) (list nuevo-valor) (drop (+ index 2) amb))
+(defn reemplazar-valor [amb indice-clave nuevo-valor]
+	(concat (take (+ indice-clave 1) amb) (list nuevo-valor) (drop (+ indice-clave 2) amb))
 )
 
 ; user=> (actualizar-amb '(a 1 b 2 c 3) 'd 4)
@@ -597,18 +597,16 @@
 ; (a 1 b 2 c 3)
 ; user=> (actualizar-amb () 'b 7)
 ; (b 7)
-(defn actualizar-amb [amb, clave, valor]
+(defn actualizar-amb [amb clave valor]
 	"Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
 	Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza la nueva informacion."
-	(cond
-		(error? valor) amb
-	:else
-		(let [index (buscar clave amb)]
-			(cond
-				(error? index) (concat amb (list clave valor))
-			:else
-				(reemplazar-valor amb index valor)
-			)
+	(let [indice-clave (.indexOf amb clave)]
+		(cond
+			(error? valor) amb
+			(= indice-clave -1) (concat amb (list clave valor))
+		:else
+			(reemplazar-valor amb indice-clave valor)
+		)
 	)
 )
 
@@ -1014,8 +1012,8 @@
 (defn crear-lambda
 	([expre]
 		(let [head (drop 1 (second expre)),
-			body (nth expre 3)]
-			((symbol lambda) head body)
+			body (nth expre 2)]
+			(list (symbol "lambda") head body)
 		)
 	)
 )
@@ -1038,12 +1036,22 @@
 ; ((;ERROR: define: bad variable (define 2 x)) (x 1))
 (defn evaluar-define [expre amb]
 	"Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
-	(cond
-		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)
-		(symbol? (second expre)) (list (symbol "#<unspecified>") (actualizar-amb amb (second expre) (nth expre 3)))
-		(and () (not (symbol? (second expre)))) (list (generar-mensaje-error :bad-variable "define" expre) amb)
-		(list (symbol "#<unspecified>") (actualizar-amb amb (second expre) valor]))
-	:else
+	(let [clave (second expre),
+		len-expre (count expre)]
+		(cond
+			(not= len-expre 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)	; expresion con argumentos distinto a 3 es error missing
+			(symbol? clave) (list (symbol "#<unspecified>") (actualizar-amb amb clave (nth expre 2))) ; si el segundo elemento es un symbol, se guarda lo que sigue en el ambiente como valor
+			(or
+				(and (coll? clave) (< (count clave) 2)) ; si el segundo es una lista y tiene longitud menor a 2
+				(and (coll? clave) (empty? clave)) ; si el segundo es una lista vacia
+				(and (not (coll? clave)) (not (symbol? clave)))) ; si el segundo es un numero
+					(list (generar-mensaje-error :bad-variable "define" expre) amb) ; es error bad variable
+		:else
+			(let [clave (first (second expre)),
+				func (crear-lambda expre)]
+				(list (symbol "#<unspecified>") (actualizar-amb amb clave func)) ; lambda
+			)
+		)
 	)
 )
 
