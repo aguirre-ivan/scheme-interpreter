@@ -526,9 +526,10 @@
 
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE SCHEME (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
-
 (defn cant-apariciones [cadena caracter]
-	((frequencies cadena) caracter)
+	(let [apariciones ((frequencies cadena) caracter)]
+		(if (not apariciones) 0 apariciones)
+	)
 )
 
 (defn parent-balanceados [cadena]
@@ -552,6 +553,7 @@
 	)
 	([entrada]
 		(cond
+			(= (verificar-parentesis (str entrada)) -1) (generar-mensaje-error :warning-paren)
 			(parent-balanceados entrada) entrada
 		:else
 			(let [prox_cadena (str (read-line))]
@@ -576,9 +578,9 @@
 	"Cuenta los parentesis en una cadena, sumando 1 si `(`, restando 1 si `)`. Si el contador se hace negativo, para y retorna -1."
 	(let [left_parent (cant-apariciones y \(), right_parent (cant-apariciones y \))]
 		(cond
-			(neg? (- right_parent left_parent)) -1
+			(neg? (- left_parent right_parent)) -1
 		:else
-			(- right_parent left_parent)
+			(- left_parent right_parent)
 		)
 	)
 )
@@ -806,8 +808,14 @@
 ; (;ERROR: Wrong number of args given #<primitive-procedure read>)
 ; user=> (fnc-read '(1 2 3))
 ; (;ERROR: Wrong number of args given #<primitive-procedure read>)
-(defn fnc-read
+(defn fnc-read [lista]
 	"Devuelve la lectura de un elemento de Scheme desde la terminal/consola."
+	(cond
+		(empty? lista) leer-entrada
+		(= (count lista) 1) (generar-mensaje-error :io-ports-not-implemented "read")
+	:else
+		(generar-mensaje-error :wrong-number-args "#<primitive-procedure read>")
+	)
 )
 
 (defn no-numero
@@ -994,8 +1002,13 @@
 ; ("hola" (x 6 y 11 z "hola"))
 ; user=> (evaluar-escalar 'n '(x 6 y 11 z "hola"))
 ; ((;ERROR: unbound variable: n) (x 6 y 11 z "hola"))
-(defn evaluar-escalar
+(defn evaluar-escalar [expre amb]
 	"Evalua una expresion escalar. Devuelve una lista con el resultado y un ambiente."
+	(cond
+		(symbol? expre) (list (buscar expre amb) amb)
+	:else
+		(list expre amb)
+	)
 )
 
 ; user=> (evaluar-define '(define x 2) '(x 1))
