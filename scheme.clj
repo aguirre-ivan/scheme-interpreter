@@ -733,14 +733,37 @@
 	)
 )
 
+(defn no-collection
+	"Devuelve el indice del primer numero/symbol de la lista, en caso de no haber devuelve -1"
+	([lista]
+		(no-collection lista 0)
+	)
+	([lista indice]
+		(cond
+			(empty? lista) -1
+			(not (coll? (first lista))) indice
+		:else
+			(no-collection (drop 1 lista) (inc indice)) 
+		)
+	)
+)
+
+
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
 ; (1 2 3 4 5 6 7)
 ; user=> (fnc-append '( (1 2) 3 (4 5) (6 7)))
 ; (;ERROR: append: Wrong type in arg 3)
 ; user=> (fnc-append '( (1 2) A (4 5) (6 7)))
 ; (;ERROR: append: Wrong type in arg A)
-(defn fnc-append
+(defn fnc-append [lista]
 	"Devuelve el resultado de fusionar listas."
+	(let [posible-wrong-arg (no-collection lista)]
+		(cond
+			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg "append" (nth lista posible-wrong-arg))
+		:else
+			(flatten lista)
+		)
+	)
 )
 
 ; user=> (fnc-equal? ())
