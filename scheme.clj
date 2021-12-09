@@ -202,7 +202,7 @@
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
 		(igual? fnc 'reverse)	(fnc-reverse lae)
-		(= fnc '=>)				(fnc-mayor-o-igual lae)
+		(igual? fnc '>=)		(fnc-mayor-o-igual lae)
 
 
 		:else (generar-mensaje-error :wrong-type-apply fnc)))
@@ -1202,6 +1202,7 @@
 	)
 )
 
+(repl)
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
 
