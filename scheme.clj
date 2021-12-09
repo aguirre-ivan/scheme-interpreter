@@ -1181,7 +1181,16 @@
 (defn evaluar-set! [expre amb]
 	"Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
 	(cond
-
+		(not (symbol? (second expre))) (list (generar-mensaje-error :bad-variable "set!" expre) amb)
+		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "set!" expre) amb)
+	:else
+		(let [clave (nth expre 1), valor (nth expre 2)]
+			(cond
+				(error? (buscar clave amb)) (list (buscar clave amb) amb)
+			:else
+				(list (symbol "#<unspecified>") (actualizar-amb amb clave valor))
+			)
+		)
 	)
 )
 
