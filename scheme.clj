@@ -1055,6 +1055,35 @@
 	)
 )
 
+(defn fnc-if
+	([condicion valor-true]
+		(fnc-if condicion valor-true (symbol "#<unspecified>"))
+	)
+	([condicion valor-true valor-false]
+		(cond
+			(or 
+				(= condicion (symbol "#f"))
+				(= condicion (symbol "#F"))
+				(= condicion nil))
+					valor-false
+		:else
+			valor-true
+		)
+	)
+)
+
+(defn aux-evaluar-if [expre]
+	"Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
+	(let [len-expre (count expre)]
+		(cond
+			(= len-expre 3) (fnc-if (nth expre 1) (nth expre 2))
+			(= len-expre 4) (fnc-if (nth expre 1) (nth expre 2) (nth expre 3))
+		:else
+			(list (generar-mensaje-error :missing-or-extra "if" expre))
+		)
+	)
+)
+
 ; user=> (evaluar-if '(if 1 2) '(n 7))
 ; (2 (n 7))
 ; user=> (evaluar-if '(if 1 n) '(n 7))
@@ -1072,9 +1101,52 @@
 ; user=> (evaluar-if '(if 1) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
 (defn evaluar-if [expre amb]
-	"Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
-	()
+	(let [evaluacion (aux-evaluar-if expre)]
+		(cond
+			(and
+				(coll? evaluacion)
+				(symbol? first evaluacion))
+				(= (symbol set!) (first evaluacion)))
+					(list (symbol "#<unespecified>") (evaluar-set! evaluacion amb)
+		:else
+			(list evaluacion amb)
+		)
+	)
+)
 
+(defn es-falso? [expre]
+	(cond
+		(= expre (symbol "#f")) false
+		(= expre (symbol "#t")) false
+		(= expre nil) false 
+	:else
+		true
+	)
+)
+
+(defn fnc-evaluar-or [valor1 valor2]
+	"Devuelve el booleano verdadero, en caso de ser ambos verdaderos devuelve el segundo y en caso de ser los dos falsos devuelve falso"
+	(cond
+		(not (es-falso? valor2)) valor2
+		(not (es-falso? valor1)) valor1
+	:else
+		(symbol "#f")
+	)
+)
+
+(defn aux-evaluar-or
+	([lista]
+		(aux-evaluar-or lista (first lista))
+	)
+	([lista resultado]
+		(cond
+			(empty? lista) resultado
+		:else
+			(let [nuevo-resultado (fnc-evaluar-or (first lista) resultado)]
+				(aux-evaluar-or (drop 1 lista) nuevo-resultado)
+			)
+		)
+	)
 )
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
@@ -1089,6 +1161,12 @@
 ; (#f (#f #f #t #t))
 (defn evaluar-or [expre amb]
 	"Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
+	(cond
+		(= (count expre) 1) (list (symbol "#f") amb)
+		(= (count expre) 1) (list (not (es-falso? (second expre))) amb)
+	:else
+		(list (aux-evaluar-or expre) amb)
+	)
 )
 
 ; user=> (evaluar-set! '(set! x 1) '(x 0))
@@ -1103,6 +1181,9 @@
 ; ((;ERROR: set!: bad variable 1) (x 0))
 (defn evaluar-set! [expre amb]
 	"Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
+	(cond
+
+	)
 )
 
 
