@@ -1118,36 +1118,46 @@
 	)
 )
 
-(defn es-falso? [expre]
+(defn aux-es-falso? [expre amb]
 	(cond
+		(= expre nil) true
+		(or (error? expre) (= expre (symbol "#<unspecified>"))) false
 		(= expre (symbol "#f")) true
 		(= expre (symbol "#F")) true
-		(= expre nil) true
 	:else
 		false
 	)
 )
 
-(defn fnc-evaluar-or [valor1 valor2]
+(defn es-falso? [expre amb]
+	(cond
+		(or (error? expre) (= expre (symbol "#<unspecified>"))) false
+		(symbol? expre) (aux-es-falso? (buscar expre amb) amb)
+	:else
+		(aux-es-falso? (evaluar expre amb) amb)
+	)
+)
+
+(defn fnc-evaluar-or [valor1 valor2 amb]
 	"Devuelve el booleano verdadero, en caso de ser ambos verdaderos devuelve el segundo y en caso de ser los dos falsos devuelve falso"
 	(cond
-		(not (es-falso? valor2)) valor2
-		(not (es-falso? valor1)) valor1
+		(not (es-falso? valor2 amb)) valor2
+		(not (es-falso? valor1 amb)) valor1
 	:else
 		(symbol "#f")
 	)
 )
 
 (defn aux-evaluar-or
-	([lista]
-		(aux-evaluar-or lista (first lista))
+	([lista amb]
+		(aux-evaluar-or lista (first lista) amb)
 	)
-	([lista resultado]
+	([lista resultado amb]
 		(cond
-			(empty? lista) resultado
+			(empty? lista) (list resultado amb)
 		:else
-			(let [nuevo-resultado (fnc-evaluar-or (first lista) resultado)]
-				(aux-evaluar-or (drop 1 lista) nuevo-resultado)
+			(let [nuevo-resultado (fnc-evaluar-or (first lista) resultado amb)]
+				(aux-evaluar-or (drop 1 lista) nuevo-resultado amb)
 			)
 		)
 	)
@@ -1168,7 +1178,7 @@
 	(cond
 		(= (count expre) 1) (list (symbol "#f") amb)
 	:else
-		(list (aux-evaluar-or (drop 1 expre)) amb)
+		(aux-evaluar-or (drop 1 expre) amb)
 	)
 )
 
