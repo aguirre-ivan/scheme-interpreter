@@ -6,10 +6,9 @@ Interprete de Scheme realizado para la materia de [Lenguajes Formales 95.48](htt
 
 Una vez completado el [archivo base](https://github.com/aguirre-ivan/scheme-interpreter/blob/main/scheme_base.clj), se puede correr de la siguiente forma:
 ```
-user => (load-file "scheme.clj")
+user => (load-file "[scheme.clj]((https://github.com/aguirre-ivan/scheme-interpreter/blob/main/scheme.clj))")
 user => (repl)
 ```
-
 # Pruebas
 
 Debe correr las pruebas como se indica en el [enunciado](https://github.com/aguirre-ivan/scheme-interpreter/blob/main/EnunciadoScheme2021.pdf)
