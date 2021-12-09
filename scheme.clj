@@ -184,8 +184,8 @@
 	[fnc lae amb]
 	(cond
 		(igual? fnc 'car)		(fnc-car lae)
-		(igual? fnc 'cdr)		(fnc-car lae)
-		(igual? fnc 'env)		(fnc-env lae)
+		(igual? fnc 'cdr)		(fnc-cdr lae)
+		(igual? fnc 'env)		(fnc-env lae amb)
 		(igual? fnc 'not)		(fnc-not lae)
 		(igual? fnc 'cons)		(fnc-cons lae)
 		(igual? fnc 'list)		(fnc-list lae)
@@ -197,7 +197,7 @@
 		(= fnc '+)				(fnc-sumar lae)
 		(igual? fnc 'append)	(fnc-append lae)
 		(= fnc '=)				(fnc-equal? lae)
-		(igual? fnc 'lenght)	(fnc-lenght lae)
+		(igual? fnc 'length)	(fnc-length lae)
 		(= fnc '-)				(fnc-restar lae)
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
@@ -1114,7 +1114,7 @@
 			(and
 				(coll? evaluacion)
 				(symbol? first evaluacion))
-				(= (symbol set!) (first evaluacion)))
+				(= (symbol "set!") (first evaluacion)))
 					(list (symbol "#<unespecified>") (evaluar-set! evaluacion amb)
 		:else
 			(list evaluacion amb)
