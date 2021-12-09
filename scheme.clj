@@ -1116,11 +1116,11 @@
 
 (defn es-falso? [expre]
 	(cond
-		(= expre (symbol "#f")) false
-		(= expre (symbol "#t")) false
-		(= expre nil) false 
+		(= expre (symbol "#f")) true
+		(= expre (symbol "#F")) true
+		(= expre nil) true
 	:else
-		true
+		false
 	)
 )
 
@@ -1163,9 +1163,8 @@
 	"Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
 	(cond
 		(= (count expre) 1) (list (symbol "#f") amb)
-		(= (count expre) 1) (list (not (es-falso? (second expre))) amb)
 	:else
-		(list (aux-evaluar-or expre) amb)
+		(list (aux-evaluar-or (drop 1 expre)) amb)
 	)
 )
 
