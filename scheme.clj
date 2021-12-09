@@ -180,22 +180,26 @@
 	"Aplica una funcion primitiva a una `lae` (lista de argumentos evaluados)."
 	[fnc lae amb]
 	(cond
-		(= fnc '<)            (fnc-menor lae)
-
-		;
-		;
-		; Si la funcion primitiva esta identificada por un simbolo, puede determinarse mas rapido que hacer con ella
-		;
-		;
-
-
-		(igual? fnc 'append)  (fnc-append lae)
-
-		;
-		;
-		; Si la funcion primitiva esta identificada mediante una palabra reservada, debe ignorarse la distincion entre mayusculas y minusculas 
-		;
-		;
+		(igual? fnc 'car)		(fnc-car lae)
+		(igual? fnc 'cdr)		(fnc-car lae)
+		(igual? fnc 'env)		(fnc-env lae)
+		(igual? fnc 'not)		(fnc-not lae)
+		(igual? fnc 'cons)		(fnc-cons lae)
+		(igual? fnc 'list)		(fnc-list lae)
+		(igual? fnc 'list?)		(fnc-list? lae)
+		(igual? fnc 'read)		(fnc-read lae)
+		(= fnc '>) 				(fnc-mayor lae)
+		(= fnc '<) 				(fnc-menor lae)
+		(igual? fnc 'null?)		(fnc-null? lae)
+		(= fnc '+)				(fnc-sumar lae)
+		(igual? fnc 'append)	(fnc-append lae)
+		(= fnc '=)				(fnc-equal? lae)
+		(igual? fnc 'lenght)	(fnc-lenght lae)
+		(= fnc '-)				(fnc-restar lae)
+		(igual? fnc 'display)	(fnc-display lae)
+		(igual? fnc 'newline)	(fnc-newline lae)
+		(igual? fnc 'reverse)	(fnc-reverse lae)
+		(= fnc '=>)				(fnc-mayor-o-igual lae)
 
 		:else (generar-mensaje-error :wrong-type-apply fnc)))
 
