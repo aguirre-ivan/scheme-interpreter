@@ -1080,13 +1080,13 @@
 )
 
 (defn aux-evaluar-if [expre]
-	"Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
+	"Evalua una expresion `if`. Devuelve valor-true, valor-false o un error"
 	(let [len-expre (count expre)]
 		(cond
 			(= len-expre 3) (fnc-if (nth expre 1) (nth expre 2))
 			(= len-expre 4) (fnc-if (nth expre 1) (nth expre 2) (nth expre 3))
 		:else
-			(list (generar-mensaje-error :missing-or-extra "if" expre))
+			(generar-mensaje-error :missing-or-extra "if" expre)
 		)
 	)
 )
@@ -1110,12 +1110,10 @@
 (defn evaluar-if [expre amb]
 	(let [evaluacion (aux-evaluar-if expre)]
 		(cond
-			(and
-				(coll? evaluacion)
-				(symbol? (first evaluacion)))
-					(evaluar evaluacion amb)
+			(or (error? evaluacion) (= evaluacion (symbol "#<unspecified>"))) (list evaluacion amb)
+			(symbol? evaluacion) (list (buscar evaluacion amb) amb)
 		:else
-			(list evaluacion amb)
+			(evaluar evaluacion amb)
 		)
 	)
 )
