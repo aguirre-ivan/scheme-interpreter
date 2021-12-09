@@ -196,7 +196,7 @@
 		(igual? fnc 'null?)		(fnc-null? lae)
 		(= fnc '+)				(fnc-sumar lae)
 		(igual? fnc 'append)	(fnc-append lae)
-		(= fnc '=)				(fnc-equal? lae)
+		(or (igual? fnc 'equal?) (igual? fnc '=))	(fnc-equal? lae)
 		(igual? fnc 'length)	(fnc-length lae)
 		(= fnc '-)				(fnc-restar lae)
 		(igual? fnc 'display)	(fnc-display lae)
@@ -534,16 +534,8 @@
 
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE SCHEME (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
-(defn cant-apariciones [cadena caracter]
-	(let [apariciones ((frequencies cadena) caracter)]
-		(if (not apariciones) 0 apariciones)
-	)
-)
-
-(defn parent-balanceados [cadena]
-	(let [left_parent (cant-apariciones cadena \(), right_parent (cant-apariciones cadena \))]
-		(= right_parent left_parent)
-	)
+(defn parentesis-balanceados [cadena]
+	(= (verificar-parentesis cadena) 0)
 )
 
 ; LEER-ENTRADA:
@@ -562,7 +554,7 @@
 	([entrada]
 		(cond
 			(= (verificar-parentesis (str entrada)) -1) (generar-mensaje-error :warning-paren)
-			(parent-balanceados entrada) entrada
+			(parentesis-balanceados entrada) entrada
 		:else
 			(let [prox_cadena (str (read-line))]
 				(leer-entrada (str entrada prox_cadena))
@@ -582,18 +574,25 @@
 ; -1
 ; user=> (verificar-parentesis "(hola '(mundo) )")
 ; 0
-(defn verificar-parentesis [y]
+(defn verificar-parentesis
 	"Cuenta los parentesis en una cadena, sumando 1 si `(`, restando 1 si `)`. Si el contador se hace negativo, para y retorna -1."
-	(let [left_parent (cant-apariciones y \(), right_parent (cant-apariciones y \))]
+	([cadena]
+		(verificar-parentesis cadena 0)
+	)
+	([cadena contador]
 		(cond
-			(neg? (- left_parent right_parent)) -1
+			(neg? contador) -1
+			(empty? cadena) contador
+			(= (first cadena) \() (verificar-parentesis (drop 1 cadena) (inc contador))
+			(= (first cadena) \)) (verificar-parentesis (drop 1 cadena) (dec contador))
 		:else
-			(- left_parent right_parent)
+			(verificar-parentesis (drop 1 cadena) contador)
 		)
 	)
 )
 
 (defn reemplazar-valor [amb indice-clave nuevo-valor]
+	"Reemplaza el valor en la clave del ambiente y devuelve el nuevo ambiente"
 	(concat (take (+ indice-clave 1) amb) (list nuevo-valor) (drop (+ indice-clave 2) amb))
 )
 
@@ -608,10 +607,11 @@
 (defn actualizar-amb [amb clave valor]
 	"Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
 	Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza la nueva informacion."
-	(let [indice-clave (.indexOf amb clave)]
+	(let [lower-clave (symbol (.toLowerCase (str clave))),
+		indice-clave (.indexOf amb lower-clave)]
 		(cond
 			(error? valor) amb
-			(= indice-clave -1) (concat amb (list clave valor))
+			(= indice-clave -1) (concat amb (list lower-clave valor))
 		:else
 			(reemplazar-valor amb indice-clave valor)
 		)
@@ -619,10 +619,12 @@
 )
 
 (defn pos-pares [lista] 
+	"Devuelve una lista con las posiciones pares de la lista recibida (claves del ambiente)"
 	(map second (partition 2 lista))
 )
 
 (defn pos-impares [lista]
+	"Devuelve una lista con las posiciones impares de la lista recibida (valores del ambiente)"
 	(let [aux-pos-impares (map first (partition 2 lista)), len (count lista)]
 		(cond
 			(odd? len) (concat aux-pos-impares (list (last lista)))
@@ -638,9 +640,10 @@
 ; (;ERROR: unbound variable: f)
 (defn buscar [clave amb]
 	"Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...] y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
-	(let [lista-claves (pos-impares amb),
+	(let [lower-clave (symbol (.toLowerCase (str clave))),
+		lista-claves (pos-impares amb),
 		lista-valores (pos-pares amb),
-		index (.indexOf lista-claves clave)]
+		index (.indexOf lista-claves lower-clave)]
 		(cond
 			(not= index -1) (nth lista-valores index)
 		:else
@@ -683,15 +686,17 @@
 ; ""
 (defn proteger-bool-en-str [cadena]
 	"Cambia, en una cadena, #t por %t y #f por %f (y sus respectivas versiones en mayusculas), para poder aplicarle read-string."
-	(clojure.string/replace cadena #"#F" "%F")
 	(apply str (map reemplazar-numeral-porcentaje cadena))
 )
 
-(defn aux-restaurar-bool [lista]
-	(replace '{%T (symbol "#T"),
-		%F (symbol "#F"),
-		%t (symbol "#t"),
-		%f (symbol "#f")} lista
+(defn aux-restaurar-bool [cadena]
+	(cond 
+		(igual? cadena '%T) (symbol "#t")
+		(igual? cadena '%t) (symbol "#t")
+		(igual? cadena '%F) (symbol "#f")
+		(igual? cadena '%f) (symbol "#f")
+	:else
+		cadena
 	)
 )
 
@@ -702,14 +707,9 @@
 (defn restaurar-bool [cadena]
 	"Cambia, en un codigo leido con read-string, %t por #t y %f por #f (y sus respectivas versiones en mayusculas)."
 	(cond
-		(coll? cadena)
-			(cond 
-				(not-any? coll? cadena) (aux-restaurar-bool cadena)
-			:else
-				(aux-restaurar-bool (map restaurar-bool cadena))
-			)
+		(coll? cadena) (map restaurar-bool cadena)
 	:else
-		cadena
+		(aux-restaurar-bool cadena)
 	)
 )
 
@@ -728,12 +728,11 @@
 	(cond
 		(or
 			(and (string? valor1) (string? valor2))
-			(and (symbol? valor1) (symbol? valor2))
-		)
-			(let [v1 (.toUpperCase (str valor1)),
-				v2 (.toUpperCase (str valor2))]
-				(= v1 v2)
-			)
+			(and (symbol? valor1) (symbol? valor2)))
+				(let [v1 (.toUpperCase (str valor1)),
+					v2 (.toUpperCase (str valor2))]
+					(= v1 v2)
+				)
 		(and (coll? valor1) (coll? valor2))
 			(and (= valor1 valor2) (= (type valor1) (type valor2)))
 	:else
@@ -1025,7 +1024,7 @@
 		)
 	)
 )
-
+; user=> (evaluar-define '(define w 'w) '(x 1))
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<unspecified> (x 2))
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
@@ -1113,9 +1112,8 @@
 		(cond
 			(and
 				(coll? evaluacion)
-				(symbol? first evaluacion))
-				(= (symbol "set!") (first evaluacion)))
-					(list (symbol "#<unespecified>") (evaluar-set! evaluacion amb)
+				(symbol? (first evaluacion)))
+					(evaluar evaluacion amb)
 		:else
 			(list evaluacion amb)
 		)
@@ -1192,17 +1190,16 @@
 		(not (symbol? (second expre))) (list (generar-mensaje-error :bad-variable "set!" expre) amb)
 		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "set!" expre) amb)
 	:else
-		(let [clave (nth expre 1), valor (nth expre 2)]
+		(let [lower-clave (symbol (.toLowerCase (str (nth expre 1)))),
+			valor (nth expre 2)]
 			(cond
-				(error? (buscar clave amb)) (list (buscar clave amb) amb)
+				(error? (buscar lower-clave amb)) (list (buscar lower-clave amb) amb)
 			:else
-				(list (symbol "#<unspecified>") (actualizar-amb amb clave valor))
+				(list (symbol "#<unspecified>") (actualizar-amb amb lower-clave valor))
 			)
 		)
 	)
 )
-
-(repl)
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
 
