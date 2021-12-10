@@ -85,8 +85,8 @@
 	"Inicia el REPL de Scheme."
 	([]
 	(println "Interprete de Scheme en Clojure")
-	(println "Trabajo Practico de 75.14/95.48 - Lenguajes Formales 2021") (prn)
-	(println "Realizado por: Ivan Gonzalo Aguirre")
+	(println "Trabajo Practico de 75.14/95.48 - Lenguajes Formales 2021")
+	(println "Realizado por: Ivan Gonzalo Aguirre") (prn)
 	(println "Inspirado en:")
 	(println "  SCM version 5f2.")                        ; https://people.csail.mit.edu/jaffer/SCM.html
 	(println "  Copyright (C) 1990-2006 Free Software Foundation.") (prn) (flush)

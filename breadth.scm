@@ -9,6 +9,7 @@
           (#T (buscar bc final (list (list inicial)) '()))))
 
 (define (buscar bc fin grafobusq estexp)
+    (display grafobusq) (newline)
     (cond ((null? grafobusq) (fracaso))
           ((pertenece fin (car grafobusq)) (exito grafobusq))
           (#t (buscar bc fin (append (cdr grafobusq) (expandir (car grafobusq) bc estexp)) 
