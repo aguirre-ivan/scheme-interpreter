@@ -560,7 +560,7 @@
 			(parentesis-balanceados entrada) entrada
 		:else
 			(let [prox_cadena (str (read-line))]
-				(leer-entrada (str entrada prox_cadena))
+				(leer-entrada (str entrada " " prox_cadena))
 			)
 		)
 	)
