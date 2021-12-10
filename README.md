@@ -17,4 +17,13 @@ user => (repl)
 Debe correr las pruebas como se indica en el [enunciado](https://github.com/aguirre-ivan/scheme-interpreter/blob/main/EnunciadoScheme2021.pdf)
 
 - Deberá poder cargarse el archivo [jarras.scm](https://github.com/aguirre-ivan/scheme-interpreter/blob/main/jarras.scm) que resuelve el problema de obtener 4  litros de líquido utilizando dos jarras lisas sin escala, una de 5 litros y otra de 8 litros.
+Se corre de la siguiente manera:
+```
+Para cargar:
+> (load "jarras")
+Para ejecutar:
+> (breadth-first bc)
+Por ejemplo, probar para pasar de (0 0) (0 4)
+```
+
 - Al cargar el archivo [demo.scm](https://github.com/aguirre-ivan/scheme-interpreter/blob/main/demo.scm) debe cumplir con la salida esperada.
