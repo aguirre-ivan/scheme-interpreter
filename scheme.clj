@@ -120,7 +120,7 @@
 	[expre amb]
 	(if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
 		(list expre amb)                                      ; de lo contrario, evaluarla
-		
+
 		(cond
 			(not (seq? expre))				(evaluar-escalar expre amb)
 			(igual? (first expre) 'define)	(evaluar-define expre amb)
@@ -134,12 +134,14 @@
 			(igual? (first expre) 'quote)	(evaluar-quote expre amb)
 			(igual? (first expre) 'lambda)	(evaluar-lambda expre amb)
 
-			; Si la expresion no es la aplicacion de una funcion (es una forma especial, una macro...) debe ser evaluada
-			; por una funcion de Clojure especifica debido a que puede ser necesario evitar la evaluacion de los argumentos
-
-				:else (let [res-eval-1 (evaluar (first expre) amb),
-										res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
-										(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
+		:else 
+			(let [res-eval-1 (evaluar (first expre) amb),
+				res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
+					(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))
+			)
+		)
+	)
+)
 
 
 (defn aplicar
