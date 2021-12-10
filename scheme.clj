@@ -86,6 +86,7 @@
 	([]
 	(println "Interprete de Scheme en Clojure")
 	(println "Trabajo Practico de 75.14/95.48 - Lenguajes Formales 2021") (prn)
+	(println "Realizado por: Ivan Gonzalo Aguirre")
 	(println "Inspirado en:")
 	(println "  SCM version 5f2.")                        ; https://people.csail.mit.edu/jaffer/SCM.html
 	(println "  Copyright (C) 1990-2006 Free Software Foundation.") (prn) (flush)
@@ -119,10 +120,10 @@
 	[expre amb]
 	(if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
 		(list expre amb)                                      ; de lo contrario, evaluarla
+		
 		(cond
 			(not (seq? expre))				(evaluar-escalar expre amb)
 			(igual? (first expre) 'define)	(evaluar-define expre amb)
-
 			(igual? (first expre) 'if)		(evaluar-if expre amb)
 			(igual? (first expre) 'cond)	(evaluar-cond expre amb)
 			(igual? (first expre) 'or)		(evaluar-or expre amb)
@@ -645,9 +646,9 @@
 		lista-valores (pos-pares amb),
 		index (.indexOf lista-claves lower-clave)]
 		(cond
-			(not= index -1) (nth lista-valores index)
+			(= index -1) (generar-mensaje-error :unbound-variable clave)
 		:else
-			(generar-mensaje-error :unbound-variable clave)
+			(nth lista-valores index)
 		)
 	)
 )
@@ -729,8 +730,8 @@
 		(or
 			(and (string? valor1) (string? valor2))
 			(and (symbol? valor1) (symbol? valor2)))
-				(let [v1 (.toUpperCase (str valor1)),
-					v2 (.toUpperCase (str valor2))]
+				(let [v1 (.toLowerCase (str valor1)),
+					v2 (.toLowerCase (str valor2))]
 					(= v1 v2)
 				)
 		(and (coll? valor1) (coll? valor2))
@@ -816,7 +817,7 @@
 (defn fnc-read [lista]
 	"Devuelve la lectura de un elemento de Scheme desde la terminal/consola."
 	(cond
-		(empty? lista) leer-entrada
+		(empty? lista) (leer-entrada)
 		(= (count lista) 1) (generar-mensaje-error :io-ports-not-implemented "read")
 	:else
 		(generar-mensaje-error :wrong-number-args "#<primitive-procedure read>")
@@ -1019,14 +1020,16 @@
 (defn crear-lambda
 	([expre]
 		(let [head (drop 1 (second expre)),
-			body (nth expre 2)]
-			(list (symbol "lambda") head body)
+			body (drop 2 expre)]
+			(cons (symbol "lambda") (cons head body))
 		)
 	)
 )
-; user=> (evaluar-define '(define w 'w) '(x 1))
+
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<unspecified> (x 2))
+; user=> (evaluar-define '(define (f x) (DISPLAY X) (+ x 1)) '(x 1))
+;
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
 ; (#<unspecified> (x 1 f (lambda (x) (+ x 1))))
 ; user=> (evaluar-define '(define) '(x 1))
@@ -1046,13 +1049,16 @@
 	(let [clave (second expre),
 		len-expre (count expre)]
 		(cond
-			(not= len-expre 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)	; expresion con argumentos distinto a 3 es error missing
-			(symbol? clave) (list (symbol "#<unspecified>") (actualizar-amb amb clave (nth expre 2))) ; si el segundo elemento es un symbol, se guarda lo que sigue en el ambiente como valor
+
+			(< len-expre 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)	; expresion con argumentos menor a 3 es error missing
+
 			(or
-				(and (coll? clave) (< (count clave) 2)) ; si el segundo es una lista y tiene longitud menor a 2
-				(and (coll? clave) (empty? clave)) ; si el segundo es una lista vacia
+				(and (coll? clave) (= (count clave) 0)) ; si el segundo es una lista y tiene longitud 0
 				(and (not (coll? clave)) (not (symbol? clave)))) ; si el segundo es un numero
 					(list (generar-mensaje-error :bad-variable "define" expre) amb) ; es error bad variable
+
+			(symbol? clave) (list (symbol "#<unspecified>") (actualizar-amb amb clave (first (evaluar (nth expre 2) amb)))) ; si el segundo elemento es un symbol, se guarda lo que sigue en el ambiente como valor
+
 		:else
 			(let [clave (first (second expre)),
 				func (crear-lambda expre)]
@@ -1199,11 +1205,14 @@
 		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "set!" expre) amb)
 	:else
 		(let [lower-clave (symbol (.toLowerCase (str (nth expre 1)))),
-			valor (nth expre 2)]
+			valor-guardar (first (evaluar (nth expre 2) amb)),
+			valor-encontrado (buscar lower-clave amb)]
+
 			(cond
-				(error? (buscar lower-clave amb)) (list (buscar lower-clave amb) amb)
+				(error? valor-encontrado) (list valor-encontrado amb)
 			:else
-				(list (symbol "#<unspecified>") (actualizar-amb amb lower-clave valor))
+				(evaluar-define (list 'define lower-clave valor-guardar) amb)
+				;(evaluar-define (list 'define lower-clave valor-guardar) amb)
 			)
 		)
 	)
