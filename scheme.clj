@@ -95,7 +95,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>=)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '= '=)))
 	([amb]
 	(print "> ") (flush)
 	(try
