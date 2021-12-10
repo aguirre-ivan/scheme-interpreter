@@ -1218,7 +1218,6 @@
 				(error? valor-encontrado) (list valor-encontrado amb)
 			:else
 				(evaluar-define (list 'define lower-clave valor-guardar) amb)
-				;(evaluar-define (list 'define lower-clave valor-guardar) amb)
 			)
 		)
 	)
