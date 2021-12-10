@@ -1,7 +1,8 @@
 # Scheme Interpreter
 
 Interprete de Scheme realizado para la materia de [Lenguajes Formales 95.48](http://wiki.foros-fiuba.com.ar/materias:75:14), correspondiente a la cursada 2021.
-Con este trabajo práctico, se espera que los estudiantes adquieran conocimientos profundos sobre el proceso de interpretación de programas y el funcionamiento de los intérpretes de lenguajes de programación y que, a la vez, pongan en práctica los conecptos del paradigma de *Programación Funcional* vistos en la materia.
+
+Con este trabajo práctico, se espera que los estudiantes adquieran conocimientos profundos sobre el proceso de interpretación de programas y el funcionamiento de los intérpretes de lenguajes de programación y que, a la vez, pongan en práctica los conceptos del paradigma de *Programación Funcional* vistos en la materia.
 
 # Interprete para completar
 

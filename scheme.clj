@@ -120,26 +120,25 @@
 	[expre amb]
 	(if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
 		(list expre amb)                                      ; de lo contrario, evaluarla
+			(cond
+				(not (seq? expre))				(evaluar-escalar expre amb)
+				(igual? (first expre) 'define)	(evaluar-define expre amb)
+				(igual? (first expre) 'if)		(evaluar-if expre amb)
+				(igual? (first expre) 'cond)	(evaluar-cond expre amb)
+				(igual? (first expre) 'or)		(evaluar-or expre amb)
+				(igual? (first expre) 'eval)	(evaluar-eval expre amb)
+				(igual? (first expre) 'exit)	(evaluar-exit expre amb)
+				(igual? (first expre) 'load)	(evaluar-load expre amb)
+				(igual? (first expre) 'set!)	(evaluar-set! expre amb)
+				(igual? (first expre) 'quote)	(evaluar-quote expre amb)
+				(igual? (first expre) 'lambda)	(evaluar-lambda expre amb)
 
-		(cond
-			(not (seq? expre))				(evaluar-escalar expre amb)
-			(igual? (first expre) 'define)	(evaluar-define expre amb)
-			(igual? (first expre) 'if)		(evaluar-if expre amb)
-			(igual? (first expre) 'cond)	(evaluar-cond expre amb)
-			(igual? (first expre) 'or)		(evaluar-or expre amb)
-			(igual? (first expre) 'eval)	(evaluar-eval expre amb)
-			(igual? (first expre) 'exit)	(evaluar-exit expre amb)
-			(igual? (first expre) 'load)	(evaluar-load expre amb)
-			(igual? (first expre) 'set!)	(evaluar-set! expre amb)
-			(igual? (first expre) 'quote)	(evaluar-quote expre amb)
-			(igual? (first expre) 'lambda)	(evaluar-lambda expre amb)
-
-		:else 
-			(let [res-eval-1 (evaluar (first expre) amb),
-				res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
-					(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))
+			:else 
+				(let [res-eval-1 (evaluar (first expre) amb),
+					res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
+						(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))
+				)
 			)
-		)
 	)
 )
 
@@ -1130,7 +1129,7 @@
 	)
 )
 
-(defn aux-es-falso? [expre amb]
+(defn es-falso? [expre amb]
 	(cond
 		(= expre nil) true
 		(or (error? expre) (= expre (symbol "#<unspecified>"))) false
@@ -1138,15 +1137,6 @@
 		(= expre (symbol "#F")) true
 	:else
 		false
-	)
-)
-
-(defn es-falso? [expre amb]
-	(cond
-		(or (error? expre) (= expre (symbol "#<unspecified>"))) false
-		(symbol? expre) (aux-es-falso? (buscar expre amb) amb)
-	:else
-		(aux-es-falso? (evaluar expre amb) amb)
 	)
 )
 
@@ -1162,14 +1152,15 @@
 
 (defn aux-evaluar-or
 	([lista amb]
-		(aux-evaluar-or lista (first lista) amb)
+		(aux-evaluar-or (drop 1 lista) (first (evaluar (first lista) amb)) amb)
 	)
 	([lista resultado amb]
 		(cond
 			(empty? lista) (list resultado amb)
+			(not (es-falso? resultado amb)) (list resultado amb) ; ya si el resultado no es falso, no hace falta evaluar los demas
 		:else
-			(let [nuevo-resultado (fnc-evaluar-or (first lista) resultado amb)]
-				(aux-evaluar-or (drop 1 lista) nuevo-resultado amb)
+			(let [nuevo-resultado (fnc-evaluar-or (first (evaluar (first lista) amb)) resultado amb)] ; fnc-evaluar-or devolvera el verdadero de ambos (con prioridad en 'resultado')
+				(aux-evaluar-or (drop 1 lista) nuevo-resultado amb) ; llamo recursivamente sacando el evaluado y con el nuevo resultado (que pudo haberse mantenido igual)
 			)
 		)
 	)
