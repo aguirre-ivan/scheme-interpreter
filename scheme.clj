@@ -131,7 +131,7 @@
 				(igual? (first expre) 'load)	(evaluar-load expre amb)
 				(igual? (first expre) 'set!)	(evaluar-set! expre amb)
 				(igual? (first expre) 'quote)	(evaluar-quote expre amb)
-				(igual? (first expre) 'lambda)	(evaluar (evaluar-lambda expre) amb)
+				(igual? (first expre) 'lambda)	(evaluar-lambda expre)
 
 			:else 
 				(let [res-eval-1 (evaluar (first expre) amb),
@@ -1101,9 +1101,6 @@
 		)
 	)
 )
-(define (reducir f l) (if (null? (cdr l)) (car l) (f (car l) (reducir f (cdr l)))))
-
-(define (mayor-cero x y) (if (> x 0) (cons x y) y))
 
 ; user=> (evaluar-if '(if 1 2) '(n 7))
 ; (2 (n 7))
