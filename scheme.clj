@@ -73,6 +73,8 @@
 (declare aplicar-lambda-multiple)
 (declare evaluar-clausulas-de-cond)
 (declare evaluar-secuencia-en-cond)
+(declare no-numero)
+(declare todos-numeros)
 
 
 ; REPL (read–eval–print loop).
@@ -84,7 +86,8 @@
 	"Inicia el REPL de Scheme."
 	([]
 	(println "Interprete de Scheme en Clojure")
-	(println "Trabajo Practico de 75.14/95.48 - Lenguajes Formales 2021") (prn)
+	(println "Trabajo Practico de 75.14/95.48 - Lenguajes Formales 2021")
+	(println "Realizado por: Ivan Gonzalo Aguirre") (prn)
 	(println "Inspirado en:")
 	(println "  SCM version 5f2.")                        ; https://people.csail.mit.edu/jaffer/SCM.html
 	(println "  Copyright (C) 1990-2006 Free Software Foundation.") (prn) (flush)
@@ -116,7 +119,8 @@
 (defn evaluar
 	"Evalua una expresion `expre` en un ambiente. Devuelve un lista con un valor resultante y un ambiente."
 	[expre amb]
-	(if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
+	(if (or (and (seq? expre) (or (empty? expre) (error? expre)))
+		(and (seq? expre) (todos-numeros expre))) ; si `expre` es () o error, devolverla intacta
 		(list expre amb)                                      ; de lo contrario, evaluarla
 			(cond
 				(not (seq? expre))				(evaluar-escalar expre amb)
@@ -132,8 +136,8 @@
 				(igual? (first expre) 'lambda)	(evaluar-lambda expre amb)
 
 			:else (let [res-eval-1 (evaluar (first expre) amb),
-						res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
-								(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
+             						 res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
+					              	(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
 
 
 (defn aplicar
@@ -856,6 +860,10 @@
 	)
 )
 
+(defn todos-numeros [lista]
+	(= (no-numero lista) -1)
+)
+
 ; user=> (fnc-sumar ())
 ; 0
 ; user=> (fnc-sumar '(3))
@@ -1085,9 +1093,9 @@
 
 (defn es-falso? [expre]
 	(cond
-		(= expre (symbol "#<unspecified>")) true
 		(= expre (symbol "#f")) true
 		(= expre (symbol "#F")) true
+		; (= expre (symbol "#<unspecified>")) false
 	:else
 		false
 	)
@@ -1136,7 +1144,7 @@
 (defn evaluar-if [expre amb]
 	(cond
 		(= (count expre) 3) (aux-evaluar-if (nth expre 1) (nth expre 2) amb)
-		(= (count expre) 4) (aux-evaluar-if (nth expre 1) (nth expre 2) (symbol "#<unspecified>") amb)
+		(= (count expre) 4) (aux-evaluar-if (nth expre 1) (nth expre 2) (nth expre 3) amb)
 	:else
 		(list (generar-mensaje-error :missing-or-extra "if" expre) amb)
 	)
@@ -1156,9 +1164,10 @@
 	([lista amb]
 		(let [evaluacion (evaluar (first lista) amb),
 			primer-elemento (nth evaluacion 0),
-			nuevo-amb (nth evaluacion 1),
-			nueva-lista (drop 1 lista)]
-			(aux-evaluar-or nueva-lista primer-elemento nuevo-amb) ; paso el primer elemento ya evaluado
+			nuevo-amb (nth evaluacion 1)]
+
+			(aux-evaluar-or (drop 1 lista) primer-elemento nuevo-amb) ; paso el primer elemento ya evaluado
+
 		)
 	)
 
