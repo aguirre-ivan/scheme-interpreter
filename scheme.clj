@@ -1,7 +1,6 @@
-(require 
-			'[clojure.string :as st :refer [blank? starts-with? ends-with? lower-case]]
-			'[clojure.java.io :refer [delete-file reader]]
-			'[clojure.walk :refer [postwalk postwalk-replace]])
+(require '[clojure.string :as st :refer [blank? starts-with? ends-with? lower-case]]
+		'[clojure.java.io :refer [delete-file reader]]
+		'[clojure.walk :refer [postwalk postwalk-replace]])
 
 (defn spy
 	([x] (do (prn x) x))
@@ -85,8 +84,7 @@
 	"Inicia el REPL de Scheme."
 	([]
 	(println "Interprete de Scheme en Clojure")
-	(println "Trabajo Practico de 75.14/95.48 - Lenguajes Formales 2021")
-	(println "Realizado por: Ivan Gonzalo Aguirre") (prn)
+	(println "Trabajo Practico de 75.14/95.48 - Lenguajes Formales 2021") (prn)
 	(println "Inspirado en:")
 	(println "  SCM version 5f2.")                        ; https://people.csail.mit.edu/jaffer/SCM.html
 	(println "  Copyright (C) 1990-2006 Free Software Foundation.") (prn) (flush)
@@ -95,7 +93,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '= '=)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>=)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -103,14 +101,14 @@
 			(if (= renglon "")
 				(repl amb)
 				(let [str-corregida (proteger-bool-en-str renglon),
-						cod-en-str (read-string str-corregida),
-						cod-corregido (restaurar-bool cod-en-str),
-						res (evaluar cod-corregido amb)]     ; EVAL
-						(if (nil? (second res))              ;   Si el ambiente del resultado es `nil`, es porque se ha evaluado (exit)
-							'Goodbye!                        ;   En tal caso, sale del REPL devolviendo Goodbye!.
-							(do (imprimir (first res))       ; PRINT
-								(repl (second res)))))))     ; LOOP (Se llama a si misma con el nuevo ambiente)
-		(catch Exception e                                  ; PRINT (si se lanza una excepcion)
+					cod-en-str (read-string str-corregida),
+					cod-corregido (restaurar-bool cod-en-str),
+					res (evaluar cod-corregido amb)]     ; EVAL
+					(if (nil? (second res))              ;   Si el ambiente del resultado es `nil`, es porque se ha evaluado (exit)
+						'Goodbye!                        ;   En tal caso, sale del REPL devolviendo Goodbye!.
+						(do (imprimir (first res))       ; PRINT
+							(repl (second res)))))))     ; LOOP (Se llama a si misma con el nuevo ambiente)
+	(catch Exception e                                  ; PRINT (si se lanza una excepcion)
 					(imprimir (generar-mensaje-error :error (get (Throwable->map e) :cause)))
 					(repl amb)))))                        ; LOOP (Se llama a si misma con el ambiente intacto)
 
@@ -133,14 +131,9 @@
 				(igual? (first expre) 'quote)	(evaluar-quote expre amb)
 				(igual? (first expre) 'lambda)	(evaluar-lambda expre amb)
 
-			:else 
-				(let [res-eval-1 (evaluar (first expre) amb),
-					res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
-						(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))
-				)
-			)
-	)
-)
+			:else (let [res-eval-1 (evaluar (first expre) amb),
+						res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
+								(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
 
 
 (defn aplicar
@@ -152,7 +145,7 @@
 		(error? resu1) (list resu1 amb)
 		(error? resu2) (list resu2 amb)
 		(not (seq? fnc)) (list (aplicar-funcion-primitiva fnc lae amb) amb)
-		:else (aplicar-lambda fnc lae amb))))
+	:else (aplicar-lambda fnc lae amb))))
 
 
 (defn aplicar-lambda
@@ -161,15 +154,22 @@
 	(cond
 		(not= (count lae) (count (second fnc))) (list (generar-mensaje-error :wrong-number-args fnc) amb)
 		(nil? (next (nnext fnc))) (aplicar-lambda-simple fnc lae amb)
-		:else (aplicar-lambda-multiple fnc lae amb)))
+	:else (aplicar-lambda-multiple fnc lae amb)))
 
 
 (defn aplicar-lambda-simple
-	"Evalua una funcion lambda `fnc` con un cuerpo simple."
+	"Evalua un lambda `fnc` con un cuerpo simple"
 	[fnc lae amb]
-	(let [nuevos (reduce concat (map list (second fnc) (map #(list 'quote %) lae))),
-			mapa (into (hash-map) (vec (map vec (partition 2 nuevos))))]
-			(evaluar (postwalk-replace mapa (first (nnext fnc))) amb)))
+	(let [lae-con-quotes (map #(if (or (number? %) (string? %) (and (seq? %) (igual? (first %) 'lambda)))
+                                 %
+                                 (list 'quote %)) lae),
+        nuevos-pares (reduce concat (map list (second fnc) lae-con-quotes)),
+        mapa (into (hash-map) (vec (map vec (partition 2 nuevos-pares)))),
+        cuerpo (first (nnext fnc)),
+        expre (if (and (seq? cuerpo) (seq? (first cuerpo)) (igual? (ffirst cuerpo) 'lambda))
+                  (cons (first cuerpo) (postwalk-replace mapa (rest cuerpo)))
+                  (postwalk-replace mapa cuerpo))]
+		(evaluar expre amb)))
 
 
 (defn aplicar-lambda-multiple
@@ -177,8 +177,8 @@
 	[fnc lae amb]
 	(aplicar (cons 'lambda (cons (second fnc) (next (nnext fnc))))
 			lae
-			(second (aplicar-lambda-simple fnc lae amb))
-			))
+			(second (aplicar-lambda-simple fnc lae amb))))
+
 
 
 (defn aplicar-funcion-primitiva
@@ -1171,7 +1171,7 @@
 				primer-elemento (nth evaluacion 0),
 				nuevo-amb (nth evaluacion 1),
 				nuevo-resultado (or-dos-elementos resultado primer-elemento)] ; or-dos-elementos devolvera el verdadero de ambos (con prioridad en 'resultado')
-				
+
 				(aux-evaluar-or (drop 1 lista) nuevo-resultado nuevo-amb) ; llamo recursivamente sacando el primer-elemento y con el nuevo resultado (que pudo haberse mantenido igual)
 			)
 		)
