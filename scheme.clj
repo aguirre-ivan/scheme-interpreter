@@ -761,6 +761,19 @@
 	)
 )
 
+(defn concat-listas
+	([lista]
+		(concat-listas lista '())
+	)
+	([lista resultado]
+		(cond
+			(empty? lista) resultado
+		:else
+			(concat-listas (drop 1 lista) (concat resultado (first lista)))
+		)
+	)
+)
+
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
 ; (1 2 3 4 5 6 7)
 ; user=> (fnc-append '( (1 2) 3 (4 5) (6 7)))
@@ -773,7 +786,7 @@
 		(cond
 			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg "append" (nth lista posible-wrong-arg))
 		:else
-			(concat lista)
+			(concat-listas lista)
 		)
 	)
 )
@@ -836,7 +849,7 @@
 	([lista indice]
 		(cond
 			(empty? lista) -1
-			(or (symbol? (first lista)) (coll? (first lista))) indice
+			(not (number? (first lista))) indice
 		:else
 			(no-numero (drop 1 lista) (inc indice)) 
 		)
@@ -1072,8 +1085,7 @@
 
 (defn es-falso? [expre]
 	(cond
-		(= expre nil) true
-		(or (error? expre) (= expre (symbol "#<unspecified>"))) false
+		(= expre (symbol "#<unspecified>")) true
 		(= expre (symbol "#f")) true
 		(= expre (symbol "#F")) true
 	:else
@@ -1085,10 +1097,13 @@
 	([condicion valor-true amb]
 		(aux-evaluar-if condicion valor-true (symbol "#<unspecified>") amb)
 	)
+
 	([condicion valor-true valor-false amb]
+
 		(let [evaluacion (evaluar condicion amb),
 			eval-condicion (nth evaluacion 0),
 			nuevo-amb (nth evaluacion 1)]
+
 			(cond
 				(not (es-falso? eval-condicion)) (evaluar valor-true nuevo-amb)
 			:else
@@ -1146,6 +1161,7 @@
 			(aux-evaluar-or nueva-lista primer-elemento nuevo-amb) ; paso el primer elemento ya evaluado
 		)
 	)
+
 	([lista resultado amb]
 		(cond
 			(empty? lista) (list resultado amb) ; se devuelve resultado ya evaluado
@@ -1155,6 +1171,7 @@
 				primer-elemento (nth evaluacion 0),
 				nuevo-amb (nth evaluacion 1),
 				nuevo-resultado (or-dos-elementos resultado primer-elemento)] ; or-dos-elementos devolvera el verdadero de ambos (con prioridad en 'resultado')
+				
 				(aux-evaluar-or (drop 1 lista) nuevo-resultado nuevo-amb) ; llamo recursivamente sacando el primer-elemento y con el nuevo resultado (que pudo haberse mantenido igual)
 			)
 		)
