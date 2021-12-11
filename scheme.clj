@@ -907,6 +907,7 @@
 (defn fnc-restar [lista]
 	"Suma los elementos de una lista."
 	(cond
+		(= (count lista) 0) (generar-mensaje-error :wrong-number-args "-")
 		(= (count lista) 1) (- (first lista))
 	:else
 		(let [posible-wrong-arg (no-numero lista)]
@@ -1069,7 +1070,7 @@
 		(cond
 
 			(< len-expre 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)	; expresion con argumentos menor a 3 es error missing
-
+			(and (> len-expre 3) (todos-numeros (drop 2 expre))) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)
 			(or
 				(and (coll? clave) (= (count clave) 0)) ; si el segundo es una lista y tiene longitud 0
 				(and (not (coll? clave)) (not (symbol? clave)))) ; si el segundo es un numero
@@ -1214,7 +1215,7 @@
 (defn evaluar-set! [expre amb]
 	"Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
 	(cond
-		(not (symbol? (second expre))) (list (generar-mensaje-error :bad-variable "set!" expre) amb)
+		(not (symbol? (second expre))) (list (generar-mensaje-error :bad-variable "set!" (second expre)) amb)
 		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "set!" expre) amb)
 	:else
 		(let [evaluacion (evaluar (nth expre 2) amb),
