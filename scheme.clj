@@ -746,21 +746,20 @@
 	)
 )
 
-(defn no-collection
-	"Devuelve el indice del primer numero/symbol de la lista, en caso de no haber devuelve -1"
+(defn no-list
+	"Devuelve el indice del primer elemento que nose una lista de la lista, en caso de no haber devuelve -1"
 	([lista]
-		(no-collection lista 0)
+		(no-list lista 0)
 	)
 	([lista indice]
 		(cond
 			(empty? lista) -1
 			(not (coll? (first lista))) indice
 		:else
-			(no-collection (drop 1 lista) (inc indice)) 
+			(no-list (drop 1 lista) (inc indice)) 
 		)
 	)
 )
-
 
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
 ; (1 2 3 4 5 6 7)
@@ -770,11 +769,11 @@
 ; (;ERROR: append: Wrong type in arg A)
 (defn fnc-append [lista]
 	"Devuelve el resultado de fusionar listas."
-	(let [posible-wrong-arg (no-collection lista)]
+	(let [posible-wrong-arg (no-list lista)]
 		(cond
 			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg "append" (nth lista posible-wrong-arg))
 		:else
-			(flatten lista)
+			(concat lista)
 		)
 	)
 )
@@ -1087,14 +1086,16 @@
 		(aux-evaluar-if condicion valor-true (symbol "#<unspecified>") amb)
 	)
 	([condicion valor-true valor-false amb]
-		(let [eval-condicion (first (evaluar condicion amb))]
+		(let [evaluacion (evaluar condicion amb),
+			eval-condicion (nth evaluacion 0),
+			nuevo-amb (nth evaluacion 1)]
 			(cond
-				(not (es-falso? eval-condicion)) (evaluar valor-true amb)
+				(not (es-falso? eval-condicion)) (evaluar valor-true nuevo-amb)
 			:else
 				(cond
-					(igual? valor-false (symbol "#<unspecified>")) (list valor-false amb)
+					(igual? valor-false (symbol "#<unspecified>")) (list valor-false nuevo-amb)
 				:else
-					(evaluar valor-false amb)
+					(evaluar valor-false nuevo-amb)
 				)
 			)
 		)
@@ -1126,11 +1127,11 @@
 	)
 )
 
-(defn fnc-evaluar-or [valor1 valor2 amb]
-	"Devuelve el booleano verdadero, en caso de ser ambos verdaderos devuelve el segundo y en caso de ser los dos falsos devuelve falso"
+(defn or-dos-elementos [valor1 valor2]
+	"Devuelve el elemento verdadero con prioridad en el primero, en caso de ser ambos falsos devuelve #f"
 	(cond
-		(not (es-falso? valor2)) valor2
 		(not (es-falso? valor1)) valor1
+		(not (es-falso? valor2)) valor2
 	:else
 		(symbol "#f")
 	)
@@ -1138,15 +1139,23 @@
 
 (defn aux-evaluar-or
 	([lista amb]
-		(aux-evaluar-or (drop 1 lista) (first (evaluar (first lista) amb)) amb)
+		(let [evaluacion (evaluar (first lista) amb),
+			primer-elemento (nth evaluacion 0),
+			nuevo-amb (nth evaluacion 1),
+			nueva-lista (drop 1 lista)]
+			(aux-evaluar-or nueva-lista primer-elemento nuevo-amb) ; paso el primer elemento ya evaluado
+		)
 	)
 	([lista resultado amb]
 		(cond
-			(empty? lista) (list resultado amb)
+			(empty? lista) (list resultado amb) ; se devuelve resultado ya evaluado
 			(not (es-falso? resultado)) (list resultado amb) ; ya si el resultado no es falso, no hace falta evaluar los demas
 		:else
-			(let [nuevo-resultado (fnc-evaluar-or (first (evaluar (first lista) amb)) resultado amb)] ; fnc-evaluar-or devolvera el verdadero de ambos (con prioridad en 'resultado')
-				(aux-evaluar-or (drop 1 lista) nuevo-resultado amb) ; llamo recursivamente sacando el evaluado y con el nuevo resultado (que pudo haberse mantenido igual)
+			(let [evaluacion (evaluar (first lista) amb),
+				primer-elemento (nth evaluacion 0),
+				nuevo-amb (nth evaluacion 1),
+				nuevo-resultado (or-dos-elementos resultado primer-elemento)] ; or-dos-elementos devolvera el verdadero de ambos (con prioridad en 'resultado')
+				(aux-evaluar-or (drop 1 lista) nuevo-resultado nuevo-amb) ; llamo recursivamente sacando el primer-elemento y con el nuevo resultado (que pudo haberse mantenido igual)
 			)
 		)
 	)
@@ -1187,15 +1196,16 @@
 		(not (symbol? (second expre))) (list (generar-mensaje-error :bad-variable "set!" expre) amb)
 		(not= (count expre) 3) (list (generar-mensaje-error :missing-or-extra "set!" expre) amb)
 	:else
-		(let [lower-clave (symbol (.toLowerCase (str (nth expre 1)))),
-			valor-guardar (first (evaluar (nth expre 2) amb)),
-			valor-encontrado (buscar lower-clave amb)]
+		(let [evaluacion (evaluar (nth expre 2) amb),
+			valor-guardar (nth evaluacion 0),
+			nuevo-amb (nth evaluacion 1),
+			clave (nth expre 1),
+			valor-encontrado (buscar clave nuevo-amb)]
 
 			(cond
-				(error? valor-encontrado) (list valor-encontrado amb)
+				(error? valor-encontrado) (list valor-encontrado nuevo-amb)
 			:else
-				"hola"
-				;(evaluar (list 'define lower-clave valor-guardar) amb)
+				(list (symbol "#<unspecified>") (actualizar-amb nuevo-amb clave valor-guardar))
 			)
 		)
 	)
