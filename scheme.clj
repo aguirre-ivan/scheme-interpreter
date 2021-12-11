@@ -119,8 +119,7 @@
 (defn evaluar
 	"Evalua una expresion `expre` en un ambiente. Devuelve un lista con un valor resultante y un ambiente."
 	[expre amb]
-	(if (or (and (seq? expre) (or (empty? expre) (error? expre)))
-		(and (seq? expre) (todos-numeros expre))) ; si `expre` es () o error, devolverla intacta
+	(if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
 		(list expre amb)                                      ; de lo contrario, evaluarla
 			(cond
 				(not (seq? expre))				(evaluar-escalar expre amb)
