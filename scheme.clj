@@ -824,8 +824,9 @@
 	(cond
 		(empty? lista) (leer-entrada)
 		(= (count lista) 1) (generar-mensaje-error :io-ports-not-implemented "read")
+		(> (count lista) 1) (generar-mensaje-error :wrong-number-args "#<primitive-procedure read>")
 	:else
-		(generar-mensaje-error :wrong-number-args "#<primitive-procedure read>")
+		(restaurar-bool (read-string (proteger-bool-en-str (str (leer-entrada)))))
 	)
 )
 
@@ -1073,31 +1074,28 @@
 	)
 )
 
-(defn fnc-if
-	([condicion valor-true]
-		(fnc-if condicion valor-true (symbol "#<unspecified>"))
-	)
-	([condicion valor-true valor-false]
-		(cond
-			(or 
-				(= condicion (symbol "#f"))
-				(= condicion (symbol "#F"))
-				(= condicion nil))
-					valor-false
-		:else
-			valor-true
-		)
+(defn es-falso? [expre]
+	(cond
+		(= expre nil) true
+		(or (error? expre) (= expre (symbol "#<unspecified>"))) false
+		(= expre (symbol "#f")) true
+		(= expre (symbol "#F")) true
+	:else
+		false
 	)
 )
 
-(defn aux-evaluar-if [expre]
-	"Evalua una expresion `if`. Devuelve valor-true, valor-false o un error"
-	(let [len-expre (count expre)]
-		(cond
-			(= len-expre 3) (fnc-if (nth expre 1) (nth expre 2))
-			(= len-expre 4) (fnc-if (nth expre 1) (nth expre 2) (nth expre 3))
-		:else
-			(generar-mensaje-error :missing-or-extra "if" expre)
+(defn aux-evaluar-if
+	([condicion valor-true amb]
+		(fnc-if condicion valor-true (symbol "#<unspecified>") amb)
+	)
+	([condicion valor-true valor-false amb]
+		(let [eval-condicion (first (evaluar condicion amb))]
+			(cond
+				(es-falso? eval-condicion) (evaluar valor-false amb)
+			:else
+				(evaluar valor-true amb)
+			)
 		)
 	)
 )
@@ -1119,32 +1117,20 @@
 ; user=> (evaluar-if '(if 1) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
 (defn evaluar-if [expre amb]
-	(let [evaluacion (aux-evaluar-if expre)]
-		(cond
-			(or (error? evaluacion) (= evaluacion (symbol "#<unspecified>"))) (list evaluacion amb)
-			(symbol? evaluacion) (list (buscar evaluacion amb) amb)
-		:else
-			(evaluar evaluacion amb)
-		)
+	(cond
+		(= (count expre) 3) (aux-evaluar-if (nth expre 1) (nth expre 2) amb)
+		(= (count expre) 4) (aux-evaluar-if (nth expre 1) (nth expre 2) (nth expre 3) amb)
+	:else
+		(list (generar-mensaje-error :missing-or-extra "if" expre) amb)
 	)
 )
 
-(defn es-falso? [expre amb]
-	(cond
-		(= expre nil) true
-		(or (error? expre) (= expre (symbol "#<unspecified>"))) false
-		(= expre (symbol "#f")) true
-		(= expre (symbol "#F")) true
-	:else
-		false
-	)
-)
 
 (defn fnc-evaluar-or [valor1 valor2 amb]
 	"Devuelve el booleano verdadero, en caso de ser ambos verdaderos devuelve el segundo y en caso de ser los dos falsos devuelve falso"
 	(cond
-		(not (es-falso? valor2 amb)) valor2
-		(not (es-falso? valor1 amb)) valor1
+		(not (es-falso? valor2)) valor2
+		(not (es-falso? valor1)) valor1
 	:else
 		(symbol "#f")
 	)
