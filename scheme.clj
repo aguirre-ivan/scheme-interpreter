@@ -131,7 +131,7 @@
 				(igual? (first expre) 'load)	(evaluar-load expre amb)
 				(igual? (first expre) 'set!)	(evaluar-set! expre amb)
 				(igual? (first expre) 'quote)	(evaluar-quote expre amb)
-				(igual? (first expre) 'lambda)	(evaluar-lambda expre)
+				(igual? (first expre) 'lambda)	(evaluar-lambda expre amb)
 
 			:else 
 				(let [res-eval-1 (evaluar (first expre) amb),
@@ -822,7 +822,6 @@
 (defn fnc-read [lista]
 	"Devuelve la lectura de un elemento de Scheme desde la terminal/consola."
 	(cond
-		(empty? lista) (leer-entrada)
 		(= (count lista) 1) (generar-mensaje-error :io-ports-not-implemented "read")
 		(> (count lista) 1) (generar-mensaje-error :wrong-number-args "#<primitive-procedure read>")
 	:else
@@ -1034,8 +1033,6 @@
 
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<unspecified> (x 2))
-; user=> (evaluar-define '(define (f x) (DISPLAY X) (+ x 1)) '(x 1))
-;
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
 ; (#<unspecified> (x 1 f (lambda (x) (+ x 1))))
 ; user=> (evaluar-define '(define) '(x 1))
@@ -1087,14 +1084,18 @@
 
 (defn aux-evaluar-if
 	([condicion valor-true amb]
-		(fnc-if condicion valor-true (symbol "#<unspecified>") amb)
+		(aux-evaluar-if condicion valor-true (symbol "#<unspecified>") amb)
 	)
 	([condicion valor-true valor-false amb]
 		(let [eval-condicion (first (evaluar condicion amb))]
 			(cond
-				(es-falso? eval-condicion) (evaluar valor-false amb)
+				(not (es-falso? eval-condicion)) (evaluar valor-true amb)
 			:else
-				(evaluar valor-true amb)
+				(cond
+					(igual? valor-false (symbol "#<unspecified>")) (list valor-false amb)
+				:else
+					(evaluar valor-false amb)
+				)
 			)
 		)
 	)
@@ -1119,12 +1120,11 @@
 (defn evaluar-if [expre amb]
 	(cond
 		(= (count expre) 3) (aux-evaluar-if (nth expre 1) (nth expre 2) amb)
-		(= (count expre) 4) (aux-evaluar-if (nth expre 1) (nth expre 2) (nth expre 3) amb)
+		(= (count expre) 4) (aux-evaluar-if (nth expre 1) (nth expre 2) (symbol "#<unspecified>") amb)
 	:else
 		(list (generar-mensaje-error :missing-or-extra "if" expre) amb)
 	)
 )
-
 
 (defn fnc-evaluar-or [valor1 valor2 amb]
 	"Devuelve el booleano verdadero, en caso de ser ambos verdaderos devuelve el segundo y en caso de ser los dos falsos devuelve falso"
@@ -1143,7 +1143,7 @@
 	([lista resultado amb]
 		(cond
 			(empty? lista) (list resultado amb)
-			(not (es-falso? resultado amb)) (list resultado amb) ; ya si el resultado no es falso, no hace falta evaluar los demas
+			(not (es-falso? resultado)) (list resultado amb) ; ya si el resultado no es falso, no hace falta evaluar los demas
 		:else
 			(let [nuevo-resultado (fnc-evaluar-or (first (evaluar (first lista) amb)) resultado amb)] ; fnc-evaluar-or devolvera el verdadero de ambos (con prioridad en 'resultado')
 				(aux-evaluar-or (drop 1 lista) nuevo-resultado amb) ; llamo recursivamente sacando el evaluado y con el nuevo resultado (que pudo haberse mantenido igual)
@@ -1194,10 +1194,13 @@
 			(cond
 				(error? valor-encontrado) (list valor-encontrado amb)
 			:else
-				(evaluar (list 'define lower-clave valor-guardar) amb)
+				"hola"
+				;(evaluar (list 'define lower-clave valor-guardar) amb)
 			)
 		)
 	)
 )
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
+
+true
