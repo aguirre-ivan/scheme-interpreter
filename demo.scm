@@ -139,9 +139,9 @@
 
 (display
 (define (recorrer L)
-  (recorrer2 L 0))
+	(recorrer2 L 0))
 ) (newline)
-  
+	
 (display "> (define D 0)") (newline)
 (display (define D 0)) (newline)
 
@@ -152,9 +152,9 @@
 
 (display
 (define (recorrer2 L i)
-  (cond
-    ((null? (cdr L)) (set! D (+ 1 D)) (list (car L) i))
-    (#t (display (list (car L) i)) (set! D (+ i 1)) (newline) (recorrer2 (cdr L) D))))
+	(cond
+		((null? (cdr L)) (set! D (+ 1 D)) (list (car L) i))
+		(#t (display (list (car L) i)) (set! D (+ i 1)) (newline) (recorrer2 (cdr L) D))))
 ) (newline)
 
 (display "> (recorrer '(a b c d e f))") (newline)
@@ -178,10 +178,10 @@
 
 (display
 (DEFINE (EXISTE? A L)
-  (COND
-    ((NULL? L) #F)
-    ((NOT (LIST? (CAR L))) (OR (EQUAL? A (CAR L)) (EXISTE? A (CDR L))))
-    (ELSE (OR (EXISTE? A (CAR L)) (EXISTE? A (CDR L))))))
+	(COND
+		((NULL? L) #F)
+		((NOT (LIST? (CAR L))) (OR (EQUAL? A (CAR L)) (EXISTE? A (CDR L))))
+		(ELSE (OR (EXISTE? A (CAR L)) (EXISTE? A (CDR L))))))
 ) (newline)
 
 (display "> (existe? 'c '(a ((b) ((d c) a) e f)))") (newline)
@@ -202,11 +202,11 @@
 
 (display
 (define (eliminar dat li)
-  (cond
-    ((null? li) li)
-    ((equal? dat (car li)) (eliminar dat (cdr li)))
-    ((list? (car li)) (cons (eliminar dat (car li)) (eliminar dat (cdr li))))
-    (else (cons (car li) (eliminar dat (cdr li))))))
+	(cond
+		((null? li) li)
+		((equal? dat (car li)) (eliminar dat (cdr li)))
+		((list? (car li)) (cons (eliminar dat (car li)) (eliminar dat (cdr li))))
+		(else (cons (car li) (eliminar dat (cdr li))))))
 ) (newline)
 
 (display "> (eliminar 'c '(a ((b) ((d c) a) c f)))") (newline)
@@ -226,10 +226,10 @@
 
 (display
 (define (profundidad lista)
-  (if (or (not (list? lista)) (null? lista)) 0
-      (if (> (+ 1 (profundidad (car lista))) (profundidad (cdr lista)))
-          (+ 1 (profundidad (car lista)))
-          (profundidad (cdr lista)))))
+	(if (or (not (list? lista)) (null? lista)) 0
+			(if (> (+ 1 (profundidad (car lista))) (profundidad (cdr lista)))
+					(+ 1 (profundidad (car lista)))
+					(profundidad (cdr lista)))))
 ) (newline)
 
 (display "> (profundidad '((2 3)(3 ((7))) 5))") (newline)
@@ -247,10 +247,10 @@
 
 (display
 (define (planchar li)
-  (cond
-    ((null? li) ())
-    ((list? (car li)) (append (planchar (car li)) (planchar (cdr li))))
-    (else (cons (car li) (planchar (cdr li))))))
+	(cond
+		((null? li) ())
+		((list? (car li)) (append (planchar (car li)) (planchar (cdr li))))
+		(else (cons (car li) (planchar (cdr li))))))
 ) (newline)
 
 (display "> (planchar '((2 3)(3 ((7))) 5))") (newline)
@@ -271,10 +271,10 @@
 
 (display
 (DEFINE (FILTRAR F L)
-  (COND
-    ((NULL? L) ())
-    ((F (CAR L)) (CONS (CAR L) (FILTRAR F (CDR L))))
-    (ELSE (FILTRAR F (CDR L)))))
+	(COND
+		((NULL? L) ())
+		((F (CAR L)) (CONS (CAR L) (FILTRAR F (CDR L))))
+		(ELSE (FILTRAR F (CDR L)))))
 ) (newline)
 
 (display "> (filtrar (lambda (x) (> x 0)) '(5 0 2 -1 4 6 0 8))") (newline)
@@ -290,9 +290,9 @@
 
 (display
 (DEFINE (REDUCIR F L)
-  (IF (NULL? (CDR L))
-      (CAR L)
-      (F (CAR L) (REDUCIR F (CDR L)))))
+	(IF (NULL? (CDR L))
+			(CAR L)
+			(F (CAR L) (REDUCIR F (CDR L)))))
 ) (newline)
 
 (display "> (reducir (lambda (x y) (if (> x 0) (cons x y) y)) '(5 0 2 -1 4 6 0 8 ()))") (newline)
@@ -308,9 +308,9 @@
 
 (display
 (DEFINE (MAPEAR OP L)
-  (IF (NULL? L)
-      ()
-      (CONS (OP (CAR L)) (MAPEAR OP (CDR L)))))
+	(IF (NULL? L)
+			()
+			(CONS (OP (CAR L)) (MAPEAR OP (CDR L)))))
 ) (newline)
 
 (display "> (mapear (lambda (x) (if (equal? x 0) 'Z x)) '(5 0 2 -1 4 6 0 8))") (newline)
@@ -326,9 +326,9 @@
 
 (display
 (DEFINE (TRANSPONER M)
-  (IF (NULL? (CAR M))
-    ()
-    (CONS (MAPEAR CAR M) (TRANSPONER (MAPEAR CDR M)))))
+	(IF (NULL? (CAR M))
+		()
+		(CONS (MAPEAR CAR M) (TRANSPONER (MAPEAR CDR M)))))
 ) (newline)
 
 (display "> (transponer '((a b c) (d e f) (g h i)))") (newline)
@@ -344,9 +344,9 @@
 
 (display
 (DEFINE (IOTA N)
-    (IF (< N 1)
-     ()
-     (AUXIOTA 1 N)))
+		(IF (< N 1)
+		 ()
+		 (AUXIOTA 1 N)))
 ) (newline)
 
 (display "> (DEFINE (AUXIOTA I N)") (newline)
@@ -356,9 +356,9 @@
 
 (display
 (DEFINE (AUXIOTA I N)
-  (IF (EQUAL? I N)
-    (LIST N)
-    (CONS I (AUXIOTA (+ I 1) N))))
+	(IF (EQUAL? I N)
+		(LIST N)
+		(CONS I (AUXIOTA (+ I 1) N))))
 ) (newline)
 
 (display "> (IOTA 10)") (newline)
@@ -389,7 +389,7 @@
 
 (display
 (define (eliminar-repetidos li)
-  (reverse (reducir (lambda (x y) (if (existe? x y) y (cons x y))) (reverse (cons () li)))))
+	(reverse (reducir (lambda (x y) (if (existe? x y) y (cons x y))) (reverse (cons () li)))))
 ) (newline)
 
 (display "> (eliminar-repetidos '(a b c d e f g d c h b i j))") (newline)
@@ -405,9 +405,9 @@
 
 (display
 (define (seleccionar n li)
-  (if (or (< n 1) (> n (length li)))
-      ()
-      (car (car (filtrar (lambda (x) (equal? n (car (cdr x)))) (transponer (list li (iota (length li)))))))))
+	(if (or (< n 1) (> n (length li)))
+			()
+			(car (car (filtrar (lambda (x) (equal? n (car (cdr x)))) (transponer (list li (iota (length li)))))))))
 ) (newline)
 
 (display "> (SELECCIONAR 5 '(A B C D E F G H I J))") (newline)
@@ -421,7 +421,7 @@
 
 (display
 (define (aplicar-todas lf x)
-  (mapear (lambda (f) (f x)) lf))
+	(mapear (lambda (f) (f x)) lf))
 ) (newline)
 
 (display "> (aplicar-todas (list length cdr car) '((3 2 1)(9 8)(7 6)(5 4)))") (newline)
@@ -440,7 +440,7 @@
 
 (define R 0)
 (define (cargarR)
-  (display "->R: ")(set! R (read))(display "R*2: ")(display (+ R R))(newline))
+	(display "->R: ")(set! R (read))(display "R*2: ")(display (+ R R))(newline))
 (cargarR)
 
 (newline)
