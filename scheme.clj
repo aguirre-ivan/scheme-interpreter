@@ -73,8 +73,6 @@
 (declare aplicar-lambda-multiple)
 (declare evaluar-clausulas-de-cond)
 (declare evaluar-secuencia-en-cond)
-(declare no-numero)
-(declare todos-numeros)
 
 
 ; REPL (read–eval–print loop).
@@ -135,8 +133,8 @@
 				(igual? (first expre) 'lambda)	(evaluar-lambda expre amb)
 
 			:else (let [res-eval-1 (evaluar (first expre) amb),
-             						 res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
-					              	(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
+									res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
+									(aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
 
 
 (defn aplicar
@@ -164,14 +162,14 @@
 	"Evalua un lambda `fnc` con un cuerpo simple"
 	[fnc lae amb]
 	(let [lae-con-quotes (map #(if (or (number? %) (string? %) (and (seq? %) (igual? (first %) 'lambda)))
-                                 %
-                                 (list 'quote %)) lae),
-        nuevos-pares (reduce concat (map list (second fnc) lae-con-quotes)),
-        mapa (into (hash-map) (vec (map vec (partition 2 nuevos-pares)))),
-        cuerpo (first (nnext fnc)),
-        expre (if (and (seq? cuerpo) (seq? (first cuerpo)) (igual? (ffirst cuerpo) 'lambda))
-                  (cons (first cuerpo) (postwalk-replace mapa (rest cuerpo)))
-                  (postwalk-replace mapa cuerpo))]
+								%
+									(list 'quote %)) lae),
+		nuevos-pares (reduce concat (map list (second fnc) lae-con-quotes)),
+		mapa (into (hash-map) (vec (map vec (partition 2 nuevos-pares)))),
+		cuerpo (first (nnext fnc)),
+		expre (if (and (seq? cuerpo) (seq? (first cuerpo)) (igual? (ffirst cuerpo) 'lambda))
+				(cons (first cuerpo) (postwalk-replace mapa (rest cuerpo)))
+				(postwalk-replace mapa cuerpo))]
 		(evaluar expre amb)))
 
 
@@ -742,8 +740,6 @@
 					v2 (.toLowerCase (str valor2))]
 					(= v1 v2)
 				)
-		(and (coll? valor1) (coll? valor2))
-			(and (= valor1 valor2) (= (type valor1) (type valor2)))
 	:else
 		(= valor1 valor2)
 	)
