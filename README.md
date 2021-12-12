@@ -28,3 +28,7 @@ Por ejemplo, probar para pasar de (0 0) (0 4)
 ```
 
 - Al cargar el archivo [demo.scm](https://github.com/aguirre-ivan/scheme-interpreter/blob/main/demo.scm) debe cumplir con la salida esperada.
+
+# Proyecto con Leiningen
+
+En el archivo [scheme-interpreter.zip](https://github.com/aguirre-ivan/scheme-interpreter/blob/main/scheme-interpreter.zip) se encuentra el trabajo realizado siguiendo los pasos para crear un proyecto en Clojure usando Leiningen, con sus respectivos tests.
