@@ -49,6 +49,7 @@
 (declare fnc-multiplicar)
 (declare fnc-dividir)
 (declare fnc-quotient)
+(declare fnc-remainder)
 (declare fnc-abs)
 (declare fnc-min)
 (declare fnc-max)
@@ -103,8 +104,10 @@
 (declare aux-evaluar-or)
 (declare aux-fnc-abs)
 (declare aux-fnc-sqrt)
+(declare aux-fnc-expt)
 (declare aux-fnc-aridad-uno)
-(declare aux-calculo-aridad-uno)
+(declare aux-calculos-aridad-uno)
+(declare aux-calculos-aridad-dos)
 
 ; REPL (read–eval–print loop).
 ; Aridad 0: Muestra mensaje de bienvenida y se llama recursivamente con el ambiente inicial.
@@ -125,7 +128,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '<= '<= '>= '>= '* '* 'quotient 'quotient '/ '/ 'abs 'abs 'expt 'expt 'min 'min 'max 'max 'even? 'even? 'odd? 'odd? 'zero? 'zero? 'sqrt 'sqrt)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '<= '<= '>= '>= '* '* 'quotient 'quotient 'remainder 'remainder '/ '/ 'abs 'abs 'expt 'expt 'min 'min 'max 'max 'even? 'even? 'odd? 'odd? 'zero? 'zero? 'sqrt 'sqrt)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -236,6 +239,7 @@
 		(= fnc '-)				(fnc-restar lae)
 		(= fnc '*)				(fnc-multiplicar lae)
 		(igual? fnc 'quotient)	(fnc-quotient lae)
+		(igual? fnc 'remainder)	(fnc-remainder lae)
 		(= fnc '/)				(fnc-dividir lae)
 		(igual? fnc 'abs)		(fnc-abs lae)
 		(igual? fnc 'min)		(fnc-min lae)
@@ -914,6 +918,21 @@
 	)
 )
 
+(defn aux-calculos-aridad-dos [lista fnc symb-fnc]
+	"Funcion auxiliar para funciones de calculo de aridad 2, como quotient y remainder"
+	(let [ari (controlar-aridad-fnc lista 2 symb-fnc),
+		arg1 (first lista),
+		arg2 (second lista)]
+		(cond
+			(error? ari) ari
+			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 symb-fnc arg1)
+			(not (number? arg2)) (generar-mensaje-error :wrong-type-arg2 symb-fnc arg2)
+		:else
+			(fnc arg1 arg2)
+		)
+	)
+)
+
 ; user=> (fnc-quotient ())
 ; (;ERROR: Wrong number of args given #<primitive-procedure quotient>)
 ; user=> (fnc-quotient (3))
@@ -932,17 +951,12 @@
 ; (;ERROR: quotient: Wrong type in arg2 A)
 (defn fnc-quotient [lista]
 	"Devuelve la division entera de dos elementos"
-	(let [ari (controlar-aridad-fnc lista 2 'quotient),
-		arg1 (first lista),
-		arg2 (second lista)]
-		(cond
-			(error? ari) ari
-			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'quotient arg1)
-			(not (number? arg2)) (generar-mensaje-error :wrong-type-arg2 'quotient arg2)
-		:else
-			(quot arg1 arg2)
-		)
-	)
+	(aux-calculos-aridad-dos lista quot 'quotient)
+)
+
+(defn aux-fnc-expt [arg1 arg2]
+	"Funcion auxiliar que devuelve el exponencial entre 2 elementos"
+	(reduce * (repeat arg2 arg1))
 )
 
 ; user=> (fnc-expt ())
@@ -962,18 +976,29 @@
 ; user=> (fnc-expt '(3 A))
 ; (;ERROR: expt: Wrong type in arg2 A)
 (defn fnc-expt [lista]
-	"Devuelve la division entera de dos elementos"
-	(let [ari (controlar-aridad-fnc lista 2 'expt),
-		arg1 (first lista),
-		arg2 (second lista)]
-		(cond
-			(error? ari) ari
-			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'expt arg1)
-			(not (number? arg2)) (generar-mensaje-error :wrong-type-arg2 'expt arg2)
-		:else
-			(reduce * (repeat arg2 arg1))
-		)
-	)
+	"Devuelve la potencia de dos elementos"
+	(aux-calculos-aridad-dos lista aux-fnc-expt 'expt)
+)
+
+; user=> (fnc-remainder ())
+; (;ERROR: Wrong number of args given #<primitive-procedure remainder>)
+; user=> (fnc-remainder (3))
+; (;ERROR: Wrong number of args given #<primitive-procedure remainder>)
+; user=> (fnc-remainder '(1 2 3))
+; (;ERROR: Wrong number of args given #<primitive-procedure remainder>)
+; user=> (fnc-remainder '(25 6))
+; 1
+; user=> (fnc-remainder '(8 3))
+; 2
+; user=> (fnc-remainder '(3 3))
+; 0
+; user=> (fnc-remainder '(A 4))
+; (;ERROR: remainder: Wrong type in arg1 A)
+; user=> (fnc-remainder '(3 A))
+; (;ERROR: remainder: Wrong type in arg2 A)
+(defn fnc-remainder [lista]
+	"Devuelve la potencia de dos elementos"
+	(aux-calculos-aridad-dos lista rem 'remainder)
 )
 
 (defn aux-fnc-aridad-uno [lista fnc symb-fnc]
