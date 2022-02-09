@@ -1231,6 +1231,31 @@
 	(fnc-orden lista >=)
 )
 
+; user=> (fnc-menor-o-igual ())
+; #t
+; user=> (fnc-menor-o-igual '(1))
+; #t
+; user=> (fnc-menor-o-igual '(2 1))
+; #f
+; user=> (fnc-menor-o-igual '(1 2 3))
+; #t
+; user=> (fnc-menor-o-igual '(4 3 2 1))
+; #f
+; user=> (fnc-menor-o-igual '(1 2 2 3))
+; #t
+; user=> (fnc-menor-o-igual '(4 2 1 4))
+; #f
+; user=> (fnc-menor-o-igual '(A 3 2 1))
+; (;ERROR: <: Wrong type in arg1 A)
+; user=> (fnc-menor-o-igual '(3 A 2 1))
+; (;ERROR: <: Wrong type in arg2 A)
+; user=> (fnc-menor-o-igual '(3 2 A 1))
+; (;ERROR: <: Wrong type in arg2 A)
+(defn fnc-menor-o-igual [lista]
+	"Devuelve #t si los numeros de una lista estan en orden creciente; si no, #f."
+	(fnc-orden lista <=)
+)
+
 ; user=> (evaluar-escalar 32 '(x 6 y 11 z "hola"))
 ; (32 (x 6 y 11 z "hola"))
 ; user=> (evaluar-escalar "hola" '(x 6 y 11 z "hola"))
