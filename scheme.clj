@@ -993,6 +993,56 @@
 	)
 )
 
+(defn aux-min-max [lista fnc symb-fnc]
+	"Auxiliar para fnc-min y fnc-max"
+	(cond
+		(= (count lista) 0) (generar-mensaje-error :wrong-number-args-prim-proc symb-fnc)
+	:else
+		(let [posible-wrong-arg (no-numero lista)]
+			(cond
+				(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 symb-fnc (nth lista 0))
+				(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 symb-fnc (nth lista posible-wrong-arg))
+			:else
+				(reduce fnc lista)
+			)
+		)
+	)
+)
+
+; user=> (fnc-max ())
+; (;ERROR: Wrong number of args given #<primitive-procedure max>)
+; user=> (fnc-max '(3))
+; 3
+; user=> (fnc-max '(3 4))
+; 4
+; user=> (fnc-max '(3 5 4))
+; 5
+; user=> (fnc-max '(A 4 5 6))
+; (;ERROR: max: Wrong type in arg1 A)
+; user=> (fnc-max '(3 A 5 6))
+; (;ERROR: max: Wrong type in arg2 A)
+(defn fnc-max [lista]
+	"Devuelve el maximo de una lista de numeros"
+	(aux-min-max lista max 'max)
+)
+
+; user=> (fnc-min ())
+; (;ERROR: Wrong number of args given #<primitive-procedure min>)
+; user=> (fnc-min '(3))
+; 3
+; user=> (fnc-min '(3 4))
+; 3
+; user=> (fnc-min '(3 5 4))
+; 3
+; user=> (fnc-min '(A 4 5 6))
+; (;ERROR: min: Wrong type in arg1 A)
+; user=> (fnc-min '(3 A 5 6))
+; (;ERROR: min: Wrong type in arg2 A)
+(defn fnc-min [lista]
+	"Devuelve el minimo de una lista de numeros"
+	(aux-min-max lista min 'min)
+)
+
 ; user=> (fnc-sumar ())
 ; 0
 ; user=> (fnc-sumar '(3))
