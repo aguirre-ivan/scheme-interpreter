@@ -929,42 +929,28 @@
 		(= (count lista) 0) (generar-mensaje-error :wrong-number-args-oper "-")
 		(= (count lista) 1) (- (first lista))
 	:else
-		(let [posible-wrong-arg (no-numero lista)]
-			(cond
-				(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 "-" (nth lista 0))
-				(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 "-" (nth lista posible-wrong-arg))
-			:else
-				(reduce - lista)
-			)
-		)
+		(fnc-oper lista - "-")
 	)
 )
 
 ; user=> (fnc-multiplicar ())
-; (;ERROR: -: Wrong number of args given)
+; 1
 ; user=> (fnc-multiplicar '(3))
-; -3
+; 3
 ; user=> (fnc-multiplicar '(3 4))
-; -1
+; 12
 ; user=> (fnc-multiplicar '(3 4 5))
-; -6
+; 60
 ; user=> (fnc-multiplicar '(3 4 5 6))
-; -12
+; 360
 ; user=> (fnc-multiplicar '(A 4 5 6))
-; (;ERROR: -: Wrong type in arg1 A)
+; (;ERROR: *: Wrong type in arg1 A)
 ; user=> (fnc-multiplicar '(3 A 5 6))
-; (;ERROR: -: Wrong type in arg2 A)
+; (;ERROR: *: Wrong type in arg2 A)
 ; user=> (fnc-multiplicar '(3 4 A 6))
-; (;ERROR: -: Wrong type in arg2 A)
+; (;ERROR: *: Wrong type in arg2 A)
 (defn fnc-multiplicar [lista]
-	(let [posible-wrong-arg (no-numero lista)]
-		(cond
-			(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 "*" (nth lista 0))
-			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 "*" (nth lista posible-wrong-arg))
-		:else
-			(reduce * lista)
-		)
-	)
+	(fnc-oper lista * "*")
 )
 
 (defn cumple-orden [lista funcion]
