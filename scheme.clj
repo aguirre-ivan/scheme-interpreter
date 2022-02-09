@@ -874,6 +874,18 @@
 	(= (no-numero lista) -1)
 )
 
+(defn fnc-oper [lista fnc str-fnc]
+	"Auxiliar de las operaciones matematicas"
+	(let [posible-wrong-arg (no-numero lista)]
+		(cond
+			(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 str-fnc (nth lista 0))
+			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 str-fnc (nth lista posible-wrong-arg))
+		:else
+			(reduce fnc lista)
+		)
+	)
+)
+
 ; user=> (fnc-sumar ())
 ; 0
 ; user=> (fnc-sumar '(3))
@@ -892,14 +904,7 @@
 ; (;ERROR: +: Wrong type in arg2 A)
 (defn fnc-sumar [lista]
 	"Suma los elementos de una lista."
-	(let [posible-wrong-arg (no-numero lista)]
-		(cond
-			(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 "+" (nth lista 0))
-			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 "+" (nth lista posible-wrong-arg))
-		:else
-			(reduce + lista)
-		)
-	)
+	(fnc-oper lista + "+")
 )
 
 ; user=> (fnc-restar ())
@@ -921,7 +926,7 @@
 (defn fnc-restar [lista]
 	"Suma los elementos de una lista."
 	(cond
-		(= (count lista) 0) (generar-mensaje-error :wrong-number-args "-")
+		(= (count lista) 0) (generar-mensaje-error :wrong-number-args-oper "-")
 		(= (count lista) 1) (- (first lista))
 	:else
 		(let [posible-wrong-arg (no-numero lista)]
