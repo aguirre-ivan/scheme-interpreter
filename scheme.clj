@@ -47,6 +47,7 @@
 (declare fnc-length)
 (declare fnc-restar)
 (declare fnc-multiplicar)
+(declare fnc-dividir)
 (declare fnc-quotient)
 (declare fnc-display)
 (declare fnc-newline)
@@ -111,7 +112,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '* '* 'quotient 'quotient)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '* '* 'quotient 'quotient '/ '/)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -216,11 +217,13 @@
 		(igual? fnc 'null?)		(fnc-null? lae)
 		(= fnc '+)				(fnc-sumar lae)
 		(igual? fnc 'append)	(fnc-append lae)
-		(or (igual? fnc 'equal?) (igual? fnc '=))	(fnc-equal? lae)
+		(or (igual? fnc 'equal?)
+			(igual? fnc '=))	(fnc-equal? lae)
 		(igual? fnc 'length)	(fnc-length lae)
 		(= fnc '-)				(fnc-restar lae)
 		(= fnc '*)				(fnc-multiplicar lae)
 		(igual? fnc 'quotient)	(fnc-quotient lae)
+		(= fnc '/)				(fnc-dividir lae)
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
 		(igual? fnc 'reverse)	(fnc-reverse lae)
@@ -899,7 +902,7 @@
 			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'quotient arg1)
 			(not (number? arg2)) (generar-mensaje-error :wrong-type-arg2 'quotient arg2)
 		:else
-			(int (/ arg1 arg2))
+			(quot arg1 arg2)
 		)
 	)
 )
@@ -942,7 +945,7 @@
 ; user=> (fnc-restar '(3 4 A 6))
 ; (;ERROR: -: Wrong type in arg2 A)
 (defn fnc-restar [lista]
-	"Suma los elementos de una lista."
+	"Resta los elementos de una lista."
 	(cond
 		(= (count lista) 0) (generar-mensaje-error :wrong-number-args-oper "-")
 		(= (count lista) 1) (- (first lista))
@@ -968,7 +971,30 @@
 ; user=> (fnc-multiplicar '(3 4 A 6))
 ; (;ERROR: *: Wrong type in arg2 A)
 (defn fnc-multiplicar [lista]
+	"Multiplica los elementos de una lista"
 	(fnc-oper lista * '*)
+)
+
+; user=> (fnc-dividir ())
+; (;ERROR: /: Wrong number of args given)
+; user=> (fnc-dividir '(3))
+; 0.33333334
+; user=> (fnc-dividir '(2 4))
+; 0.5
+; user=> (fnc-dividir '(4 2 2))
+; 1.0
+; user=> (fnc-dividir '(A 4 5 6))
+; (;ERROR: /: Wrong type in arg1 A)
+; user=> (fnc-dividir '(3 A 5 6))
+; (;ERROR: /: Wrong type in arg2 A)
+(defn fnc-dividir [lista]
+	"Divide los elementos de una lista"
+	(cond
+		(= (count lista) 0) (generar-mensaje-error :wrong-number-args-oper "/")
+		(= (count lista) 1) (/ 1 (first lista))
+	:else
+		(fnc-oper lista / '/)
+	)
 )
 
 (defn cumple-orden [lista funcion]
