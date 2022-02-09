@@ -49,10 +49,18 @@
 (declare fnc-multiplicar)
 (declare fnc-dividir)
 (declare fnc-quotient)
+(declare fnc-abs)
+(declare fnc-min)
+(declare fnc-max)
+(declare fnc-expt)
+(declare fnc-even?)
+(declare fnc-odd?)
+(declare fnc-zero?)
 (declare fnc-display)
 (declare fnc-newline)
 (declare fnc-reverse)
 (declare fnc-mayor-o-igual)
+(declare fnc-menor-o-igual)
 
 ; Funciones auxiliares
 (declare buscar)
@@ -112,7 +120,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '* '* 'quotient 'quotient '/ '/)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '<= '<= '>= '>= '* '* 'quotient 'quotient '/ '/ 'abs 'abs 'expt 'expt 'min 'min 'max 'max 'even? 'even? 'odd? 'odd? 'zero? 'zero?)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -224,10 +232,18 @@
 		(= fnc '*)				(fnc-multiplicar lae)
 		(igual? fnc 'quotient)	(fnc-quotient lae)
 		(= fnc '/)				(fnc-dividir lae)
+		(igual? fnc 'abs)		(fnc-abs lae)
+		(igual? fnc 'min)		(fnc-min lae)
+		(igual? fnc 'max)		(fnc-max lae)
+		(igual? fnc 'expt)		(fnc-expt lae)
+		(igual? fnc 'even?)		(fnc-even? lae)
+		(igual? fnc 'odd?)		(fnc-odd? lae)
+		(igual? fnc 'zero?)		(fnc-zero? lae)
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
 		(igual? fnc 'reverse)	(fnc-reverse lae)
 		(igual? fnc '>=)		(fnc-mayor-o-igual lae)
+		(igual? fnc '<=)		(fnc-menor-o-igual lae)
 
 
 		:else (generar-mensaje-error :wrong-type-apply fnc)))
@@ -892,6 +908,22 @@
 	)
 )
 
+; user=> (fnc-quotient ())
+; (;ERROR: Wrong number of args given #<primitive-procedure quotient>)
+; user=> (fnc-quotient (3))
+; (;ERROR: Wrong number of args given #<primitive-procedure quotient>)
+; user=> (fnc-quotient '(3 4 5))
+; (;ERROR: Wrong number of args given #<primitive-procedure quotient>)
+; user=> (fnc-quotient '(5 2))
+; 2
+; user=> (fnc-quotient '(4 2))
+; 2
+; user=> (fnc-quotient '(3 2))
+; 1
+; user=> (fnc-quotient '(A 4))
+; (;ERROR: quotient: Wrong type in arg1 A)
+; user=> (fnc-quotient '(3 A))
+; (;ERROR: quotient: Wrong type in arg2 A)
 (defn fnc-quotient [lista]
 	"Devuelve la division entera de dos elementos"
 	(let [ari (controlar-aridad-fnc lista 2 'quotient),
@@ -903,6 +935,60 @@
 			(not (number? arg2)) (generar-mensaje-error :wrong-type-arg2 'quotient arg2)
 		:else
 			(quot arg1 arg2)
+		)
+	)
+)
+
+; user=> (fnc-expt ())
+; (;ERROR: Wrong number of args given #<primitive-procedure expt>)
+; user=> (fnc-expt (3))
+; (;ERROR: Wrong number of args given #<primitive-procedure expt>)
+; user=> (fnc-expt '(3 4 5))
+; (;ERROR: Wrong number of args given #<primitive-procedure expt>)
+; user=> (fnc-expt '(5 2))
+; 25
+; user=> (fnc-expt '(4 2))
+; 16
+; user=> (fnc-expt '(3 3))
+; 9
+; user=> (fnc-expt '(A 4))
+; (;ERROR: expt: Wrong type in arg1 A)
+; user=> (fnc-expt '(3 A))
+; (;ERROR: expt: Wrong type in arg2 A)
+(defn fnc-expt [lista]
+	"Devuelve la division entera de dos elementos"
+	(let [ari (controlar-aridad-fnc lista 2 'expt),
+		arg1 (first lista),
+		arg2 (second lista)]
+		(cond
+			(error? ari) ari
+			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'expt arg1)
+			(not (number? arg2)) (generar-mensaje-error :wrong-type-arg2 'expt arg2)
+		:else
+			(reduce * (repeat arg2 arg1))
+		)
+	)
+)
+
+; user=> (fnc-abs ())
+; (;ERROR: Wrong number of args given #<primitive-procedure abs>)
+; user=> (fnc-abs '(3 4))
+; (;ERROR: Wrong number of args given #<primitive-procedure abs>)
+; user=> (fnc-abs '(2))
+; 2
+; user=> (fnc-abs '(-2))
+; 2
+; user=> (fnc-abs '(A))
+; (;ERROR: abs: Wrong type in arg1 A)
+(defn fnc-abs [lista]
+	"Devuelve el valor absoluto de un numero"
+	(let [ari (controlar-aridad-fnc lista 1 'abs),
+		arg1 (first lista)]
+		(cond
+			(error? ari) ari
+			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'abs arg1)
+		:else
+			(max arg1 (- arg1))
 		)
 	)
 )
