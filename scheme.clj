@@ -46,13 +46,13 @@
 (declare fnc-equal?)
 (declare fnc-length)
 (declare fnc-restar)
+(declare fnc-multiplicar)
 (declare fnc-display)
 (declare fnc-newline)
 (declare fnc-reverse)
 (declare fnc-mayor-o-igual)
 
 ; Funciones auxiliares
-
 (declare buscar)
 (declare error?)
 (declare igual?)
@@ -73,7 +73,22 @@
 (declare aplicar-lambda-multiple)
 (declare evaluar-clausulas-de-cond)
 (declare evaluar-secuencia-en-cond)
-
+(declare parentesis-balanceados)
+(declare reemplazar-valor)
+(declare pos-pares)
+(declare pos-impares)
+(declare reemplazar-numeral-porcentaje)
+(declare aux-restaurar-bool)
+(declare no-list)
+(declare concat-listas)
+(declare no-numero)
+(declare todos-numeros)
+(declare cumple-orden)
+(declare crear-lambda)
+(declare es-falso?)
+(declare aux-evaluar-if)
+(declare or-dos-elementos)
+(declare aux-evaluar-or)
 
 ; REPL (read–eval–print loop).
 ; Aridad 0: Muestra mensaje de bienvenida y se llama recursivamente con el ambiente inicial.
@@ -94,7 +109,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>=)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '* '*)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -202,6 +217,7 @@
 		(or (igual? fnc 'equal?) (igual? fnc '=))	(fnc-equal? lae)
 		(igual? fnc 'length)	(fnc-length lae)
 		(= fnc '-)				(fnc-restar lae)
+		(= fnc '*)				(fnc-multiplicar lae)
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
 		(igual? fnc 'reverse)	(fnc-reverse lae)
@@ -632,7 +648,8 @@
 
 (defn pos-impares [lista]
 	"Devuelve una lista con las posiciones impares de la lista recibida (valores del ambiente)"
-	(let [aux-pos-impares (map first (partition 2 lista)), len (count lista)]
+	(let [aux-pos-impares (map first (partition 2 lista)),
+		len (count lista)]
 		(cond
 			(odd? len) (concat aux-pos-impares (list (last lista)))
 		:else
@@ -733,9 +750,7 @@
 (defn igual? [valor1 valor2]
 	"Verifica la igualdad entre dos elementos al estilo de Scheme (case-insensitive)"
 	(cond
-		(or
-			(and (string? valor1) (string? valor2))
-			(and (symbol? valor1) (symbol? valor2)))
+		(and (symbol? valor1) (symbol? valor2))
 				(let [v1 (.toLowerCase (str valor1)),
 					v2 (.toLowerCase (str valor2))]
 					(= v1 v2)
@@ -746,14 +761,14 @@
 )
 
 (defn no-list
-	"Devuelve el indice del primer elemento que nose una lista de la lista, en caso de no haber devuelve -1"
+	"Devuelve el indice del primer elemento que no sea una lista de la lista, en caso de no haber devuelve -1"
 	([lista]
 		(no-list lista 0)
 	)
 	([lista indice]
 		(cond
 			(empty? lista) -1
-			(not (coll? (first lista))) indice
+			(not (seq? (first lista))) indice
 		:else
 			(no-list (drop 1 lista) (inc indice)) 
 		)
@@ -903,7 +918,6 @@
 ; (;ERROR: -: Wrong type in arg2 A)
 ; user=> (fnc-restar '(3 4 A 6))
 ; (;ERROR: -: Wrong type in arg2 A)
-
 (defn fnc-restar [lista]
 	"Suma los elementos de una lista."
 	(cond
@@ -917,6 +931,33 @@
 			:else
 				(reduce - lista)
 			)
+		)
+	)
+)
+
+; user=> (fnc-multiplicar ())
+; (;ERROR: -: Wrong number of args given)
+; user=> (fnc-multiplicar '(3))
+; -3
+; user=> (fnc-multiplicar '(3 4))
+; -1
+; user=> (fnc-multiplicar '(3 4 5))
+; -6
+; user=> (fnc-multiplicar '(3 4 5 6))
+; -12
+; user=> (fnc-multiplicar '(A 4 5 6))
+; (;ERROR: -: Wrong type in arg1 A)
+; user=> (fnc-multiplicar '(3 A 5 6))
+; (;ERROR: -: Wrong type in arg2 A)
+; user=> (fnc-multiplicar '(3 4 A 6))
+; (;ERROR: -: Wrong type in arg2 A)
+(defn fnc-multiplicar [lista]
+	(let [posible-wrong-arg (no-numero lista)]
+		(cond
+			(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 "*" (nth lista 0))
+			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 "*" (nth lista posible-wrong-arg))
+		:else
+			(reduce * lista)
 		)
 	)
 )
@@ -1071,6 +1112,7 @@
 
 			(< len-expre 3) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)	; expresion con argumentos menor a 3 es error missing
 			(and (> len-expre 3) (todos-numeros (drop 2 expre))) (list (generar-mensaje-error :missing-or-extra "define" expre) amb)
+
 			(or
 				(and (coll? clave) (= (count clave) 0)) ; si el segundo es una lista y tiene longitud 0
 				(and (not (coll? clave)) (not (symbol? clave)))) ; si el segundo es un numero
@@ -1091,7 +1133,6 @@
 	(cond
 		(= expre (symbol "#f")) true
 		(= expre (symbol "#F")) true
-		; (= expre (symbol "#<unspecified>")) false
 	:else
 		false
 	)
