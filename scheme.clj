@@ -1001,7 +1001,7 @@
 			(error? ari) ari
 			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 symb-fnc arg1)
 		:else
-			(aux-fnc-abs arg1)
+			(fnc arg1)
 		)
 	)
 )
