@@ -100,6 +100,8 @@
 (declare aux-evaluar-if)
 (declare or-dos-elementos)
 (declare aux-evaluar-or)
+(declare aux-fnc-abs)
+(declare aux-fnc-aridad-uno)
 
 ; REPL (read–eval–print loop).
 ; Aridad 0: Muestra mensaje de bienvenida y se llama recursivamente con el ambiente inicial.
@@ -970,6 +972,28 @@
 	)
 )
 
+(defn aux-fnc-aridad-uno [lista fnc symb-fnc]
+	"Funcion auxiliar para funciones relacionales de aridad 1"
+	(let [ari (controlar-aridad-fnc lista 1 symb-fnc),
+		arg1 (first lista)]
+		(cond
+			(error? ari) ari
+			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 symb-fnc arg1)
+		:else
+			(cond
+				(fnc arg1) (symbol "#t")
+			:else
+				(symbol "#f")
+			)
+		)
+	)
+)
+
+(defn aux-fnc-abs [arg1]
+	"Funcion auxiliar para fnc-abs"
+	(max arg1 (- arg1))
+)
+
 ; user=> (fnc-abs ())
 ; (;ERROR: Wrong number of args given #<primitive-procedure abs>)
 ; user=> (fnc-abs '(3 4))
@@ -982,15 +1006,61 @@
 ; (;ERROR: abs: Wrong type in arg1 A)
 (defn fnc-abs [lista]
 	"Devuelve el valor absoluto de un numero"
+		"Funcion auxiliar para operaciones de aridad 1"
 	(let [ari (controlar-aridad-fnc lista 1 'abs),
 		arg1 (first lista)]
 		(cond
 			(error? ari) ari
 			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'abs arg1)
 		:else
-			(max arg1 (- arg1))
+			(aux-fnc-abs arg1)
 		)
 	)
+)
+
+; user=> (fnc-even? ())
+; (;ERROR: Wrong number of args given #<primitive-procedure even?>)
+; user=> (fnc-even? '(3 4))
+; (;ERROR: Wrong number of args given #<primitive-procedure even?>)
+; user=> (fnc-even? '(2))
+; #t
+; user=> (fnc-even? '(3))
+; #f
+; user=> (fnc-even? '(A))
+; (;ERROR: even?: Wrong type in arg1 A)
+(defn fnc-even? [lista]
+	"Funcion que verifica si un numero es par"
+	(aux-fnc-aridad-uno lista even? 'even?)
+)
+
+; user=> (fnc-odd? ())
+; (;ERROR: Wrong number of args given #<primitive-procedure odd?>)
+; user=> (fnc-odd? '(3 4))
+; (;ERROR: Wrong number of args given #<primitive-procedure odd?>)
+; user=> (fnc-odd? '(2))
+; #f
+; user=> (fnc-odd? '(3))
+; #t
+; user=> (fnc-odd? '(A))
+; (;ERROR: odd?: Wrong type in arg1 A)
+(defn fnc-odd? [lista]
+	"Funcion que verifica si un numero es impar"
+	(aux-fnc-aridad-uno lista odd? 'odd?)
+)
+
+; user=> (fnc-zero? ())
+; (;ERROR: Wrong number of args given #<primitive-procedure zero?>)
+; user=> (fnc-zero? '(3 4))
+; (;ERROR: Wrong number of args given #<primitive-procedure zero?>)
+; user=> (fnc-zero? '(2))
+; #f
+; user=> (fnc-zero? '(0))
+; #t
+; user=> (fnc-zero? '(A))
+; (;ERROR: zero?: Wrong type in arg1 A)
+(defn fnc-zero? [lista]
+	"Funcion que verifica si un numero es cero"
+	(aux-fnc-aridad-uno lista zero? 'zero?)
 )
 
 (defn aux-min-max [lista fnc symb-fnc]
