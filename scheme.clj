@@ -56,6 +56,7 @@
 (declare fnc-even?)
 (declare fnc-odd?)
 (declare fnc-zero?)
+(declare fnc-sqrt)
 (declare fnc-display)
 (declare fnc-newline)
 (declare fnc-reverse)
@@ -101,7 +102,9 @@
 (declare or-dos-elementos)
 (declare aux-evaluar-or)
 (declare aux-fnc-abs)
+(declare aux-fnc-sqrt)
 (declare aux-fnc-aridad-uno)
+(declare aux-calculo-aridad-uno)
 
 ; REPL (read–eval–print loop).
 ; Aridad 0: Muestra mensaje de bienvenida y se llama recursivamente con el ambiente inicial.
@@ -122,7 +125,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '<= '<= '>= '>= '* '* 'quotient 'quotient '/ '/ 'abs 'abs 'expt 'expt 'min 'min 'max 'max 'even? 'even? 'odd? 'odd? 'zero? 'zero?)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '<= '<= '>= '>= '* '* 'quotient 'quotient '/ '/ 'abs 'abs 'expt 'expt 'min 'min 'max 'max 'even? 'even? 'odd? 'odd? 'zero? 'zero? 'sqrt 'sqrt)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -241,6 +244,7 @@
 		(igual? fnc 'even?)		(fnc-even? lae)
 		(igual? fnc 'odd?)		(fnc-odd? lae)
 		(igual? fnc 'zero?)		(fnc-zero? lae)
+		(igual? fnc 'sqrt)		(fnc-sqrt lae)
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
 		(igual? fnc 'reverse)	(fnc-reverse lae)
@@ -989,6 +993,19 @@
 	)
 )
 
+(defn aux-calculos-aridad-uno [lista fnc symb-fnc]
+	"Funcion auxiliar para funciones de calculo de aridad 1"
+	(let [ari (controlar-aridad-fnc lista 1 symb-fnc),
+		arg1 (first lista)]
+		(cond
+			(error? ari) ari
+			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 symb-fnc arg1)
+		:else
+			(aux-fnc-abs arg1)
+		)
+	)
+)
+
 (defn aux-fnc-abs [arg1]
 	"Funcion auxiliar para fnc-abs"
 	(max arg1 (- arg1))
@@ -1007,15 +1024,27 @@
 (defn fnc-abs [lista]
 	"Devuelve el valor absoluto de un numero"
 		"Funcion auxiliar para operaciones de aridad 1"
-	(let [ari (controlar-aridad-fnc lista 1 'abs),
-		arg1 (first lista)]
-		(cond
-			(error? ari) ari
-			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'abs arg1)
-		:else
-			(aux-fnc-abs arg1)
-		)
-	)
+	(aux-calculos-aridad-uno lista aux-fnc-abs 'abs)
+)
+
+(defn aux-fnc-sqrt [num]
+	"Funcion auxiliar de fnc-sqrt"
+	(Math/sqrt num)
+)
+
+; user=> (fnc-sqrt ())
+; (;ERROR: Wrong number of args given #<primitive-procedure sqrt>)
+; user=> (fnc-sqrt '(3 4))
+; (;ERROR: Wrong number of args given #<primitive-procedure sqrt>)
+; user=> (fnc-sqrt '(4))
+; 2
+; user=> (fnc-sqrt '(16))
+; 4
+; user=> (fnc-sqrt '(A))
+; (;ERROR: sqrt: Wrong type in arg1 A)
+(defn fnc-sqrt [lista]
+	"Devuelve la raiz cuadrada de un numero"
+	(aux-calculos-aridad-uno lista aux-fnc-sqrt 'sqrt)
 )
 
 ; user=> (fnc-even? ())
