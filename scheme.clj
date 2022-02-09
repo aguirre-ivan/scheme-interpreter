@@ -47,6 +47,7 @@
 (declare fnc-length)
 (declare fnc-restar)
 (declare fnc-multiplicar)
+(declare fnc-quotient)
 (declare fnc-display)
 (declare fnc-newline)
 (declare fnc-reverse)
@@ -83,6 +84,7 @@
 (declare concat-listas)
 (declare no-numero)
 (declare todos-numeros)
+(declare fnc-oper)
 (declare cumple-orden)
 (declare crear-lambda)
 (declare es-falso?)
@@ -109,7 +111,7 @@
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
 				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '* '*)))
+				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= '* '* 'quotient 'quotient)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -218,6 +220,7 @@
 		(igual? fnc 'length)	(fnc-length lae)
 		(= fnc '-)				(fnc-restar lae)
 		(= fnc '*)				(fnc-multiplicar lae)
+		(igual? fnc 'quotient)	(fnc-quotient lae)
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
 		(igual? fnc 'reverse)	(fnc-reverse lae)
@@ -874,14 +877,29 @@
 	(= (no-numero lista) -1)
 )
 
-(defn fnc-oper [lista fnc str-fnc]
+(defn fnc-oper [lista fnc symb-fnc]
 	"Auxiliar de las operaciones matematicas"
 	(let [posible-wrong-arg (no-numero lista)]
 		(cond
-			(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 str-fnc (nth lista 0))
-			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 str-fnc (nth lista posible-wrong-arg))
+			(= posible-wrong-arg 0) (generar-mensaje-error :wrong-type-arg1 symb-fnc (nth lista 0))
+			(not= posible-wrong-arg -1) (generar-mensaje-error :wrong-type-arg2 symb-fnc (nth lista posible-wrong-arg))
 		:else
 			(reduce fnc lista)
+		)
+	)
+)
+
+(defn fnc-quotient [lista]
+	"Devuelve la division entera de dos elementos"
+	(let [ari (controlar-aridad-fnc lista 2 'quotient),
+		arg1 (first lista),
+		arg2 (second lista)]
+		(cond
+			(error? ari) ari
+			(not (number? arg1)) (generar-mensaje-error :wrong-type-arg1 'quotient arg1)
+			(not (number? arg2)) (generar-mensaje-error :wrong-type-arg2 'quotient arg2)
+		:else
+			(int (/ arg1 arg2))
 		)
 	)
 )
@@ -904,7 +922,7 @@
 ; (;ERROR: +: Wrong type in arg2 A)
 (defn fnc-sumar [lista]
 	"Suma los elementos de una lista."
-	(fnc-oper lista + "+")
+	(fnc-oper lista + '+)
 )
 
 ; user=> (fnc-restar ())
@@ -929,7 +947,7 @@
 		(= (count lista) 0) (generar-mensaje-error :wrong-number-args-oper "-")
 		(= (count lista) 1) (- (first lista))
 	:else
-		(fnc-oper lista - "-")
+		(fnc-oper lista - '-)
 	)
 )
 
@@ -950,7 +968,7 @@
 ; user=> (fnc-multiplicar '(3 4 A 6))
 ; (;ERROR: *: Wrong type in arg2 A)
 (defn fnc-multiplicar [lista]
-	(fnc-oper lista * "*")
+	(fnc-oper lista * '*)
 )
 
 (defn cumple-orden [lista funcion]
