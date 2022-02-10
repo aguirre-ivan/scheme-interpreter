@@ -220,6 +220,15 @@
 	"Aplica una funcion primitiva a una `lae` (lista de argumentos evaluados)."
 	[fnc lae amb]
 	(cond
+		(= fnc '>) 				(fnc-mayor lae)
+		(= fnc '<) 				(fnc-menor lae)
+		(= fnc '+)				(fnc-sumar lae)
+		(= fnc '=)				(fnc-equal? lae)
+		(= fnc '-)				(fnc-restar lae)
+		(= fnc '*)				(fnc-multiplicar lae)
+		(= fnc '/)				(fnc-dividir lae)
+		(= fnc '>=)				(fnc-mayor-o-igual lae)
+		(= fnc '<=)				(fnc-menor-o-igual lae)
 		(igual? fnc 'car)		(fnc-car lae)
 		(igual? fnc 'cdr)		(fnc-cdr lae)
 		(igual? fnc 'env)		(fnc-env lae amb)
@@ -228,19 +237,12 @@
 		(igual? fnc 'list)		(fnc-list lae)
 		(igual? fnc 'list?)		(fnc-list? lae)
 		(igual? fnc 'read)		(fnc-read lae)
-		(= fnc '>) 				(fnc-mayor lae)
-		(= fnc '<) 				(fnc-menor lae)
 		(igual? fnc 'null?)		(fnc-null? lae)
-		(= fnc '+)				(fnc-sumar lae)
 		(igual? fnc 'append)	(fnc-append lae)
-		(or (igual? fnc 'equal?)
-			(igual? fnc '=))	(fnc-equal? lae)
+		(igual? fnc 'equal?)	(fnc-equal? lae)
 		(igual? fnc 'length)	(fnc-length lae)
-		(= fnc '-)				(fnc-restar lae)
-		(= fnc '*)				(fnc-multiplicar lae)
 		(igual? fnc 'quotient)	(fnc-quotient lae)
 		(igual? fnc 'remainder)	(fnc-remainder lae)
-		(= fnc '/)				(fnc-dividir lae)
 		(igual? fnc 'abs)		(fnc-abs lae)
 		(igual? fnc 'min)		(fnc-min lae)
 		(igual? fnc 'max)		(fnc-max lae)
@@ -252,8 +254,6 @@
 		(igual? fnc 'display)	(fnc-display lae)
 		(igual? fnc 'newline)	(fnc-newline lae)
 		(igual? fnc 'reverse)	(fnc-reverse lae)
-		(igual? fnc '>=)		(fnc-mayor-o-igual lae)
-		(igual? fnc '<=)		(fnc-menor-o-igual lae)
 
 
 		:else (generar-mensaje-error :wrong-type-apply fnc)))
@@ -880,8 +880,8 @@
 (defn fnc-read [lista]
 	"Devuelve la lectura de un elemento de Scheme desde la terminal/consola."
 	(cond
-		(= (count lista) 1) (generar-mensaje-error :io-ports-not-implemented "read")
-		(> (count lista) 1) (generar-mensaje-error :wrong-number-args "#<primitive-procedure read>")
+		(= (count lista) 1) (generar-mensaje-error :io-ports-not-implemented 'read)
+		(> (count lista) 1) (generar-mensaje-error :wrong-number-args-oper 'read)
 	:else
 		(restaurar-bool (read-string (proteger-bool-en-str (str (leer-entrada)))))
 	)
