@@ -1,3 +1,6 @@
+(ns scheme-interpreter.core
+	(:gen-class))
+
 (require '[clojure.string :as st :refer [blank? starts-with? ends-with? lower-case]]
 		'[clojure.java.io :refer [delete-file reader]]
 		'[clojure.walk :refer [postwalk postwalk-replace]])
@@ -109,6 +112,11 @@
 (declare aux-calculos-aridad-uno)
 (declare aux-calculos-aridad-dos)
 
+(defn -main
+	"Funcion principal de interprete de scheme"
+	[& args]
+	(repl))
+
 ; REPL (read–eval–print loop).
 ; Aridad 0: Muestra mensaje de bienvenida y se llama recursivamente con el ambiente inicial.
 ; Aridad 1: Muestra > y lee una expresion y la evalua. El resultado es una lista con un valor y un ambiente. 
@@ -127,8 +135,7 @@
 				'display 'display 'env 'env 'equal? 'equal? 'eval 'eval 'exit 'exit
 				'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list? 'load 'load
 				'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
-				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-				(symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '<= '<= '>= '>= '* '* 'quotient 'quotient 'remainder 'remainder '/ '/ 'abs 'abs 'expt 'expt 'min 'min 'max 'max 'even? 'even? 'odd? 'odd? 'zero? 'zero? 'sqrt 'sqrt)))
+				'read 'read 'reverse 'reverse 'set! 'set! (symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '<= '<= '>= '>= '* '* 'quotient 'quotient 'remainder 'remainder '/ '/ 'abs 'abs 'expt 'expt 'min 'min 'max 'max 'even? 'even? 'odd? 'odd? 'zero? 'zero? 'sqrt 'sqrt)))
 	([amb]
 	(print "> ") (flush)
 	(try
@@ -1250,7 +1257,7 @@
 	"Divide los elementos de una lista"
 	(cond
 		(= (count lista) 0) (generar-mensaje-error :wrong-number-args-oper '/)
-		(= (count lista) 1) (/ 1 (first lista))
+		(= (count lista) 1) (/ (first lista))
 	:else
 		(fnc-oper lista / '/)
 	)
@@ -1452,6 +1459,7 @@
 	(cond
 		(= expre (symbol "#f")) true
 		(= expre (symbol "#F")) true
+		; (= expre (symbol "#<unspecified>")) false
 	:else
 		false
 	)
@@ -1594,5 +1602,3 @@
 )
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
-
-true
